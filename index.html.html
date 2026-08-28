@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>দৈনিক ও মাসিক আমল ট্র্যাকার</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme Colors */
+            --primary: #0e6b3f;
+            --primary-dark: #074728;
+            --primary-light: #e8f5e9;
+            --accent: #2e7d32;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --cat-header-bg: #d0dae2; /* Darker soft gray-blue for contrast */
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 14px;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --arabic-color: #065f46;
+            --shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        body.dark-mode {
+            /* Dark Theme Colors */
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #1e293b;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --cat-header-bg: #1c2738; /* Darker distinct blue-gray */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --arabic-color: #6ee7b7;
+            --shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans Bengali', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 90px;
+        }
+
+        /* Modern Dashboard Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: #ffffff;
+            padding: 20px 20px 22px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            position: relative;
+            box-shadow: 0 8px 20px -5px rgba(14, 107, 63, 0.4);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-title h1 {
+            font-size: 19px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .header-date {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .score-pill {
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(5px);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.3);
+            white-space: nowrap;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Circular Progress */
+        .dashboard-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .progress-circle-wrap {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .progress-circle {
+            transform: rotate(-90deg);
+            width: 60px;
+            height: 60px;
+        }
+
+        .progress-circle circle {
+            fill: none;
+            stroke-width: 5;
+            stroke-linecap: round;
+        }
+
+        .progress-bg { stroke: rgba(255, 255, 255, 0.2); }
+        .progress-bar-svg {
+            stroke: #ffffff;
+            stroke-dasharray: 170;
+            stroke-dashoffset: 170;
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .stat-details h3 { font-size: 13.5px; opacity: 0.9; font-weight: normal; }
+        .stat-details p { font-size: 22px; font-weight: 700; margin-top: 0px; }
+
+        /* Compact Floating Progress Pill */
+        .floating-progress {
+            position: fixed;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(14, 107, 63, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1200;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+        }
+        body.dark-mode .floating-progress {
+            background: rgba(16, 185, 129, 0.95);
+        }
+        .floating-progress.show {
+            top: 15px;
+        }
+        .fp-text {
+            font-size: 13.5px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .fp-pct {
+            background: rgba(255,255,255,0.25);
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Daily Quote */
+        .daily-quote {
+            margin: -12px 15px 12px;
+            background: var(--card-bg);
+            padding: 10px 14px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+            position: relative;
+            z-index: 10;
+        }
+        .daily-quote p { font-size: 12.5px; line-height: 1.4; color: var(--text-muted); font-style: italic; }
+        .daily-quote strong { color: var(--primary); display: block; margin-top: 3px; font-size: 11px; }
+
+        /* Navigation */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 12px 15px;
+            background: var(--card-bg);
+            padding: 6px 10px;
+            border-radius: 25px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        .nav-btn {
+            background: var(--primary-light);
+            color: var(--primary);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .date-input-wrap { position: relative; cursor: pointer; text-align: center; }
+        .date-display { font-size: 13.5px; font-weight: 700; color: var(--text-main); }
+        #datePicker, #monthPicker { position: absolute; opacity: 0; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
+
+        .container { max-width: 700px; margin: 0 auto; padding: 0 12px; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Categories */
+        .cat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .cat-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            background-color: var(--cat-header-bg);
+            border-bottom: 1px solid var(--border);
+            border-left: 5px solid var(--primary);
+        }
+
+        .cat-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .cat-icon {
+            width: 38px; height: 38px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .cat-info h3 { font-size: 15.5px; font-weight: 700; color: var(--text-main); }
+        .cat-info span { font-size: 12px; color: var(--text-muted); display: block; margin-top: 2px; }
+
+        .cat-right { display: flex; align-items: center; gap: 8px; }
+        .cat-score-badge { font-size: 14.5px; font-weight: 800; color: var(--danger); }
+        .cat-score-badge.completed { color: var(--success); }
+        
+        .cat-toggle {
+            width: 22px; height: 22px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: var(--text-muted);
+            transition: transform 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .cat-toggle.collapsed { transform: rotate(-90deg); }
+
+        .question-list { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+        /* Items */
+        .q-item {
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--card-bg);
+            transition: all 0.2s ease;
+        }
+        .q-item.completed { background-color: var(--primary-light); border-color: var(--primary); }
+
+        .q-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; cursor: pointer; user-select: none; }
+        .q-left { display: flex; align-items: flex-start; gap: 10px; flex: 1; }
+        
+        .custom-check {
+            width: 20px; height: 20px;
+            border-radius: 50%; border: 2px solid #cbd5e1;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: transparent; font-size: 12px; font-weight: bold;
+            margin-top: 1px; flex-shrink: 0;
+        }
+        body.dark-mode .custom-check { border-color: #475569; }
+        .q-item.completed .custom-check {
+            background: var(--primary); border-color: var(--primary); color: white;
+            transform: scale(1.1);
+        }
+
+        .q-text-wrap { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; width: 100%;}
+        .q-text { font-size: 13.5px; font-weight: 600; color: var(--text-main); line-height: 1.3; }
+        
+        .badge-btn-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px;}
+        
+        .q-badge {
+            display: inline-flex; font-size: 10px; color: var(--text-muted);
+            background: var(--bg); padding: 2px 6px; border-radius: 6px; 
+            align-items: center; justify-content: center; height: 20px;
+        }
+        
+        /* Compact Inline Button */
+        .inline-toggle-btn {
+            font-size: 10.5px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--primary-light);
+            padding: 0 8px;
+            height: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(14, 107, 63, 0.15);
+            transition: all 0.2s;
+        }
+        body.dark-mode .inline-toggle-btn {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: var(--primary);
+        }
+
+        .q-points {
+            font-size: 11.5px; font-weight: 700; color: var(--primary);
+            background: var(--bg); padding: 3px 6px; border-radius: 6px;
+            white-space: nowrap; margin-left: 8px;
+        }
+
+        /* Rating Multiplier */
+        .rating-item { padding: 10px; border-radius: 12px; border: 1.5px solid var(--border); }
+        .rating-item.has-val { background-color: var(--primary-light); border-color: var(--primary); }
+        .rating-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .rating-title { font-size: 13.5px; font-weight: 600; color: var(--text-main); line-height: 1.3;}
+        .rating-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+        .rating-pills { display: flex; gap: 6px; justify-content: space-between; overflow-x: auto; }
+        .rating-pill {
+            flex: 1; min-width: 35px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 6px 2px; background: var(--bg); border: 1.5px solid var(--border);
+            border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .rating-pill.selected { background: var(--primary); border-color: var(--primary); color: white; transform: translateY(-1px); }
+        .pill-num { font-size: 14px; font-weight: bold; }
+        .pill-sub { font-size: 9px; opacity: 0.8; margin-top: 1px; }
+
+        /* Dua Box (Details block) */
+        .dua-box { 
+            padding: 10px 12px; 
+            border-top: 1px dashed var(--border); 
+            background: var(--bg);
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+        .arabic-text {
+            direction: rtl; text-align: right; font-size: 20px; line-height: 1.8;
+            color: var(--arabic-color); font-family: 'Amiri', serif; font-weight: bold;
+            margin-bottom: 10px; background: var(--card-bg); padding: 10px 12px;
+            border-radius: 8px; border-right: 3px solid var(--primary);
+        }
+        .trans-text { font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; line-height: 1.5; }
+        .meaning-text {
+            font-size: 12.5px; color: var(--text-main); line-height: 1.5;
+            background: var(--primary-light); padding: 8px 10px; border-radius: 8px;
+            border-left: 3px solid var(--primary); text-align: justify;
+        }
+        .fazilat-text { font-size: 11.5px; color: var(--warning); margin-top: 6px; line-height: 1.4; font-style: italic; }
+
+        /* Note & Cards */
+        .note-card, .chart-card, .breakdown-card, .backup-card {
+            background: var(--card-bg); border-radius: var(--radius); padding: 14px;
+            border: 1px solid var(--border); margin-bottom: 14px; box-shadow: var(--shadow);
+        }
+        .note-card h3, .chart-header h3, .breakdown-header h3, .backup-card h3 { font-size: 13.5px; margin-bottom: 8px; color: var(--text-main); }
+        .note-box {
+            width: 100%; height: 70px; border-radius: 8px; border: 1px solid var(--border);
+            padding: 10px; font-size: 13.5px; outline: none; resize: none;
+            background: var(--bg); color: var(--text-main);
+        }
+        .note-box:focus { border-color: var(--primary); }
+
+        .btn-action {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 12px; border-radius: 10px; border: none;
+            font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; transition: 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(14, 107, 63, 0.3); }
+        .btn-secondary { background: var(--bg); color: var(--text-main); border: 1px solid var(--border); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        /* Stats & Charts */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+        .stat-box { background: var(--card-bg); padding: 12px 6px; border-radius: var(--radius); text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .stat-num { font-size: 18px; font-weight: bold; color: var(--primary); margin-bottom: 2px; }
+        .stat-label { font-size: 10.5px; color: var(--text-muted); }
+
+        .breakdown-header p, .backup-card p { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+        
+        .chart-container { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+        .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 10px 4px 25px; border-bottom: 1px solid var(--border); min-width: 550px; position: relative; }
+        .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; position: relative; }
+        .bar-fill { width: 12px; background: linear-gradient(to top, var(--primary), #4caf50); border-radius: 4px 4px 0 0; transition: height 0.4s ease; }
+        .bar-value { font-size: 9px; font-weight: 700; color: var(--text-main); margin-bottom: 3px; white-space: nowrap; }
+        .bar-date { position: absolute; bottom: -18px; font-size: 9.5px; color: var(--text-muted); }
+
+        /* Breakdown Progress */
+        .pct-item { margin-bottom: 10px; }
+        .pct-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 12px; }
+        .pct-title { font-weight: 600; color: var(--text-main); }
+        .pct-count { font-size: 10.5px; color: var(--text-muted); margin-right: 6px; }
+        .pct-val { font-weight: bold; padding: 2px 6px; border-radius: 6px; font-size: 10.5px; }
+
+        .pct-high { background: #e8f5e9; color: var(--success); }
+        .pct-mid { background: #fff3e0; color: var(--warning); }
+        .pct-low { background: #ffebee; color: var(--danger); }
+        body.dark-mode .pct-high { background: rgba(16, 185, 129, 0.15); }
+        body.dark-mode .pct-mid { background: rgba(245, 158, 11, 0.15); }
+        body.dark-mode .pct-low { background: rgba(239, 68, 68, 0.15); }
+
+        .progress-track { height: 6px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .progress-high { background: var(--success); }
+        .progress-mid { background: var(--warning); }
+        .progress-low { background: var(--danger); }
+
+        .expand-toggle-btn {
+            font-size: 11px; color: var(--primary); cursor: pointer; margin-top: 6px; font-weight: bold;
+            display: inline-block; background: var(--primary-light); padding: 4px 10px; border-radius: 6px;
+        }
+        .hidden-details { display: none; margin-top: 8px; padding: 8px 12px; border-left: 3px solid var(--primary); background: var(--bg); border-radius: 0 8px 8px 0; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--card-bg); border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; padding: 8px 0 12px;
+            z-index: 1000; box-shadow: 0 -4px 15px rgba(0,0,0,0.04);
+        }
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            font-size: 11px; color: var(--text-muted); cursor: pointer; flex: 1; transition: 0.3s;
+        }
+        .tab-item.active { color: var(--primary); font-weight: 700; transform: translateY(-2px); }
+        .tab-icon { font-size: 20px; }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: var(--text-main); color: var(--card-bg);
+            padding: 10px 20px; border-radius: 30px; font-size: 13.5px; font-weight: 600;
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 2000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Floating Compact Progress Pill (Appears on scroll) -->
+    <div class="floating-progress" id="floatingProgress">
+        <span class="fp-text">আজকের অর্জন: <span id="floatScore">০ / ১০০</span></span>
+        <span class="fp-pct" id="floatPct">০%</span>
+    </div>
+
+    <div class="header">
+        <div class="header-top">
+            <div class="header-title">
+                <h1>🌙 আমল ট্র্যাকার</h1>
+                <div class="header-date">দৈনন্দিন আত্মশুদ্ধি ও মুহাসাবাহ</div>
+                <div id="hijriDate" style="font-size: 12.5px; font-weight: 700; color: #a7f3d0; margin-top: 3px;"></div>
+            </div>
+            <div class="header-actions">
+                <div class="score-pill" id="scorePillTop">
+                    <!-- মার্কস এখন ডায়নামিক -->
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀️</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-stats" id="dashboardStats">
+            <div class="stat-details">
+                <h3>আজকের অর্জন</h3>
+                <p id="progressMarksText">
+                    <!-- মার্কস এখন ডায়নামিক -->
+                </p>
+            </div>
+            <div class="progress-circle-wrap">
+                <svg class="progress-circle" viewBox="0 0 60 60">
+                    <circle class="progress-bg" cx="30" cy="30" r="26"></circle>
+                    <circle class="progress-bar-svg" id="progressRing" cx="30" cy="30" r="26"></circle>
+                </svg>
+                <div class="progress-text" id="progressText">০%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="daily-quote" id="dailyQuoteBlock">
+        <p id="dailyQuoteText">"যে ব্যক্তি আল্লাহর জিকির করে আর যে করে না, তাদের দৃষ্টান্ত হলো জীবিত ও মৃতের মতো।"</p>
+        <strong id="dailyQuoteRef">- সহীহ বুখারী</strong>
+    </div>
+
+    <div class="nav-bar" id="dailyNavBar">
+        <button class="nav-btn" onclick="shiftDate(-1)">&#8249;</button>
+        <div class="date-input-wrap">
+            <span class="date-display" id="dateText">তারিখ লোড হচ্ছে...</span>
+            <input type="date" id="datePicker" onchange="onDateChange(event)">
+        </div>
+        <button class="nav-btn" onclick="shiftDate(1)">&#8250;</button>
+    </div>
+
+    <!-- Daily Tab -->
+    <div id="tabDaily" class="tab-content active container">
+        <div id="categoryContainer"></div>
+
+        <div class="note-card">
+            <h3>📝 আজকের বিশেষ অনুভূতি / নোট</h3>
+            <textarea id="dailyNote" class="note-box" placeholder="সারাদিনের কোনো ভালো কাজ বা অপূর্ণতা লিখে রাখুন..." oninput="saveNote()"></textarea>
+        </div>
+
+        <button class="btn-action btn-danger" onclick="resetCurrentDay()">↺ আজকের ডেটা রিসেট করুন</button>
+    </div>
+
+    <!-- Monthly Tab -->
+    <div id="tabMonthly" class="tab-content container">
+        <div class="nav-bar" style="margin: 0 0 12px 0;">
+            <button class="nav-btn" onclick="shiftMonth(-1)">&#8249;</button>
+            <div class="date-input-wrap">
+                <span class="date-display" id="monthText">মাস লোড হচ্ছে...</span>
+                <input type="month" id="monthPicker" onchange="onMonthChange(event)">
+            </div>
+            <button class="nav-btn" onclick="shiftMonth(1)">&#8250;</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-num" id="statActiveDays">০</div>
+                <div class="stat-label">ট্র্যাক করা দিন</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="statAvgScore">০%</div>
+                <div class="stat-label">গড় আমল স্কোর</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="statBestScore">০</div>
+                <div class="stat-label">সর্বোচ্চ মার্কস</div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>মাসিক স্কোরের গ্রাফ (তারিখ অনুযায়ী)</h3>
+            </div>
+            <div class="chart-container">
+                <div class="bar-chart" id="monthlyBarChart"></div>
+            </div>
+        </div>
+
+        <div class="breakdown-card">
+            <div class="breakdown-header">
+                <h3>আমল ভিত্তিক নিয়মিততার শতকরা হার (%)</h3>
+                <p>যিকিরের ক্ষেত্রে ৮০%+ সম্পন্ন হলে দিনটি আদায় হিসেবে গণ্য করা হয়েছে</p>
+            </div>
+            <div id="breakdownList"></div>
+        </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="tabSettings" class="tab-content container">
+        <div class="backup-card">
+            <h3>💾 ডেটা ব্যাকআপ ও সংরক্ষণ</h3>
+            <p>আপনার সকল দিনের আমলের ডেটা ফাইলে সেভ করে রাখতে পারেন, যাতে ব্রাউজার ক্লিন বা ফোন চেঞ্জ করলেও ডেটা নষ্ট না হয়।</p>
+            <button class="btn-action btn-primary" onclick="exportDataJSON()">📥 ব্যাকআপ ডাউনলোড করুন</button>
+            
+            <label class="btn-action btn-secondary" style="margin-bottom: 0;">
+                📤 ব্যাকআপ রিস্টোর করুন
+                <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importDataJSON(event)">
+            </label>
+        </div>
+
+        <div class="backup-card" style="border-color: rgba(239, 68, 68, 0.3);">
+            <h3 style="color: var(--danger);">⚠️ ফ্যাক্টরি রিসেট</h3>
+            <p>আপনি কি সকল মাসের সম্পূর্ণ সংরক্ষিত হিসাব মুছে ফেলতে চান?</p>
+            <button class="btn-action btn-danger" style="margin-bottom:0;" onclick="clearAllData()">সকল ডেটা মুছে ফেলুন</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="tab-item active" onclick="switchTab('daily')">
+            <div class="tab-icon">📋</div>
+            <div>দৈনিক আমল</div>
+        </div>
+        <div class="tab-item" onclick="switchTab('monthly')">
+            <div class="tab-icon">📈</div>
+            <div>মাসিক রিপোর্ট</div>
+        </div>
+        <div class="tab-item" onclick="switchTab('settings')">
+            <div class="tab-icon">⚙️</div>
+            <div>সেটিংস</div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">ডেটা সংরক্ষিত হয়েছে!</div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('amal_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeBtn').innerText = isDark ? '🌙' : '☀️';
+        }
+        if(localStorage.getItem('amal_theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('themeBtn').innerText = '🌙';
+        }
+
+        const islamicQuotes = [
+            { t: "যে ব্যক্তি আল্লাহর জিকির করে আর যে করে না, তাদের দৃষ্টান্ত হলো জীবিত ও মৃতের মতো।", r: "সহীহ বুখারী" },
+            { t: "তোমরা আমাকে স্মরণ করো, আমিও তোমাদের স্মরণ করব।", r: "আল-বাকারা: ১৫২" },
+            { t: "নিশ্চয়ই আল্লাহর স্মরণেই অন্তরসমূহ প্রশান্তি লাভ করে।", r: "আর-রাদ: ২৮" },
+            { t: "যে ব্যক্তি সকালে ও সন্ধ্যায় 'সুবহানাল্লাহি ওয়া বিহামদিহি' ১০০ বার পাঠ করবে, কিয়ামতের দিন তার চেয়ে উত্তম আমল নিয়ে আর কেউ আসবে না।", r: "সহীহ মুসলিম" },
+            { t: "দুটি বাক্য এমন যা দয়াময়ের কাছে খুব প্রিয়, উচ্চারণে খুবই সহজ এবং আমলের পাল্লায় অনেক ভারী— 'সুবহানাল্লাহি ওয়া বিহামদিহী, সুবহানাল্লাহিল আযীম'।", r: "সহীহ বুখারী" }
+        ];
+        const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+        const todayQuote = islamicQuotes[dayOfYear % islamicQuotes.length];
+        document.getElementById('dailyQuoteText').innerText = `"${todayQuote.t}"`;
+        document.getElementById('dailyQuoteRef').innerText = `- ${todayQuote.r}`;
+
+        // নামাজের পরের ৫টি মাসনুন আমলের বিস্তারিত এইচটিএমএল 
+        const postSalatDetails = `
+        <div style="font-size: 13px; line-height: 1.6; color: var(--text-main);">
+            <div style="margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+                <b style="color: var(--primary); font-size: 14px;">১. আস্তাগফিরুল্লাহ ও সালামের দু'আ</b>
+                <div class="arabic-text" style="font-size: 18px; padding: 6px 10px; margin: 6px 0;">أَسْتَغْفِرُ اللَّهَ (ثَلَاثًا) اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ</div>
+                <div class="trans-text"><b>উচ্চারণ:</b> আস্তাগফিরুল্লাহ (৩ বার)। আল্লা-হুম্মা আনতাস সালা-মু ওয়া মিনকাস সালা-মু তাবা-রকতা ইয়া যাল-জালা-লি ওয়াল-ইকরাম।</div>
+                <div class="meaning-text" style="margin-bottom: 5px;"><b>অর্থ:</b> আমি আল্লাহর কাছে ক্ষমা চাচ্ছি (৩ বার)। হে আল্লাহ! আপনি শান্তিময় এবং আপনার কাছ থেকেই শান্তি আসে। আপনি বরকতময় হে মহিমময়, মহানুভব!</div>
+                <div class="fazilat-text"><b>ফযীলত:</b> রাসূল (সা.) নামাযের পর এটি পড়তেন।</div>
+            </div>
+
+            <div style="margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+                <b style="color: var(--primary); font-size: 14px;">২. আয়াতুল কুরসী</b>
+                <div class="arabic-text" style="font-size: 18px; padding: 6px 10px; margin: 6px 0;">اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ</div>
+                <div class="trans-text"><b>উচ্চারণ:</b> আল্লা-হু লা ইলা-হা ইল্লা হুওয়াল হাইয়্যুল ক্বাইয়্যূম। লা তা’খুযুহু সিনাতুঁও ওয়ালা নাউম। লাহু মা ফিস্ সামা-ওয়া-তি ওয়ামা ফিল আরদ্বি... (সম্পূর্ণ)</div>
+                <div class="meaning-text" style="margin-bottom: 5px;"><b>অর্থ:</b> আল্লাহ, তিনি ছাড়া কোনো হক ইলাহ্ নেই। তিনি চিরঞ্জীব, সর্বসত্তার ধারক। তাঁকে তন্দ্রাও স্পর্শ করতে পারে না... (সম্পূর্ণ)</div>
+                <div class="fazilat-text"><b>ফযীলত:</b> প্রত্যেক ফরজ নামাযের পর পড়লে, জান্নাতে প্রবেশের পথে মৃত্যু ছাড়া আর কোনো বাধা থাকবে না।</div>
+            </div>
+
+            <div style="margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+                <b style="color: var(--primary); font-size: 14px;">৩. লা ইলাহা ইল্লাল্লাহু ওয়াহদাহু...</b>
+                <div class="arabic-text" style="font-size: 18px; padding: 6px 10px; margin: 6px 0;">لَا إِلَهَ إِلََّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَ هُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ</div>
+                <div class="trans-text"><b>উচ্চারণ:</b> লা ইলাহা ইল্লাল্লা-হু ওয়াহদাহু লা শারীকা লাহু, লাহুল মুলকু অলাহুলহামদু অহুয়া আলা কুল্লি শাইয়িন ক্বাদীর।</div>
+                <div class="meaning-text" style="margin-bottom: 5px;"><b>অর্থ:</b> আল্লাহ ব্যতীত কোন সত্য মাবুদ নেই, তিনি একক, তাঁর কোন অংশী নেই, তাঁরই জন্য সমস্ত রাজত্ব, তাঁরই সমস্ত প্রশংসা এবং তিনি সর্ব বিষয়ে শক্তিমান।</div>
+                <div class="fazilat-text"><b>ফযীলত:</b> এটি পড়লে শয়তানের প্ররোচনা থেকে রক্ষা পাওয়া যায় এবং প্রভূত সওয়াব অর্জিত হয়।</div>
+            </div>
+
+            <div style="margin-bottom: 15px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;">
+                <b style="color: var(--primary); font-size: 14px;">৪. আল্লাহুম্মা লা মানি'আ লিমা আ'ত্বাইতা...</b>
+                <div class="arabic-text" style="font-size: 18px; padding: 6px 10px; margin: 6px 0;">اللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ وَلَا مُعْطِيَ لِمَا مَنَعْتَ وَلَا يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ</div>
+                <div class="trans-text"><b>উচ্চারণ:</b> আল্লা-হুম্মা লা মা-নিয়া লিমা আ'ত্বাইতা, অলা মু'তিয়া লিমা মানা'তা অলা ইয়ানফাউ যাল-জাদ্দি মিনকাল জাদ্দ।</div>
+                <div class="meaning-text" style="margin-bottom: 5px;"><b>অর্থ:</b> হে আল্লাহ! আপনি যা দান করেন তা রোধ করার এবং আপনি যা রোধ করেন তা দান করার সাধ্য কারো নেই। আর ধনবানের ধন আপনার আযাব থেকে মুক্তি পেতে কোন উপকারে আসবে না।</div>
+                <div class="fazilat-text"><b>ফযীলত:</b> রাসূল (সা.) ফরজ নামাযের পর এটি পাঠ করতেন।</div>
+            </div>
+
+            <div style="margin-bottom: 5px;">
+                <b style="color: var(--primary); font-size: 14px;">৫. তাসবীহ ফাতেমী</b>
+                <div class="arabic-text" style="font-size: 18px; padding: 6px 10px; margin: 6px 0;">سُبْحَانَ اللَّهِ (33) | الْحَمْدُ لِلَّهِ (33) | اللَّهُ أَكْبَرُ (34)</div>
+                <div class="trans-text"><b>উচ্চারণ:</b> সুবহানাল্লাহ (৩৩ বার), আলহামদুলিল্লাহ (৩৩ বার), আল্লাহু আকবার (৩৪ বার)।</div>
+                <div class="meaning-text" style="margin-bottom: 5px;"><b>অর্থ:</b> আল্লাহ পবিত্র, সকল প্রশংসা আল্লাহর, আল্লাহ সবচেয়ে মহান।</div>
+                <div class="fazilat-text" style="border: none;"><b>ফযীলত:</b> নামাযের পর পড়লে সমুদ্রের ফেনা সমপরিমাণ গুনাহ থাকলেও ক্ষমা করা হয়।</div>
+            </div>
+        </div>
+        `;
+
+        const rawDuas = {
+            d1: { name: "১ নং যিকির: আয়াতুল কুরসী", arabic: "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ", trans: "উচ্চারণ: আল্লা-হু লা ইলা-হা ইল্লা হুওয়াল হাইয়্যুল ক্বাইয়্যূম। লা তা’খুযুহু সিনাতুঁও ওয়ালা নাউম। লাহু মা ফিস্ সামা-ওয়া-তি ওয়ামা ফিল আরদ্বি। মান যাল্লাযী ইয়াশফাউ ‘ইনদাহূ ইল্লা বিইযনিহী। ইয়া‘লামু মা বাইনা আইদীহিম ওয়ামা খালফাহুম, ওয়ালা ইয়ুহীতূনা বিশাইয়িম মিন ‘ইলমিহী ইল্লা বিমা শা-আ। ওয়াসি‘আ কুরসিয়্যুহুস সামা-ওয়া-তি ওয়াল আরদ্ব; ওয়ালা ইয়াউদুহূ হিফযুহুমা ওয়াহুওয়াল ‘আলিইয়্যুল ‘আযীম।", meaning: "অর্থ: আল্লাহ, তিনি ছাড়া কোনো হক ইলাহ্ নেই। তিনি চিরঞ্জীব, সর্বসত্তার ধারক। তাঁকে তন্দ্রাও স্পর্শ করতে পারে না, নিদ্রাও নয়। আসমানসমূহে যা রয়েছে ও যমীনে যা রয়েছে সবই তাঁর। কে সে, যে তাঁর অনুমতি ব্যতীত তাঁর কাছে সুপারিশ করবে? তাদের সামনে ও পেছনে যা কিছু আছে তা তিনি জানেন। আর যা তিনি ইচ্ছে করেন তা ছাড়া তাঁর জ্ঞানের কোনো কিছুকেই তারা পরিবেষ্টন করতে পারে না। তাঁর 'কুরসী' আসমানসমূহ ও যমীনকে পরিব্যাপ্ত করে আছে; আর সেগুলোকে ধারণ করা তাঁর পক্ষে কঠিন নয়। আর তিনি সুউচ্চ সুমহান।", fazilat: "ফযীলত: কোনো ব্যক্তি সকাল-সন্ধ্যায় আয়াতুল কুরসী পাঠ করলে সারাদিন ও সারারাত জিনের আক্রমণ থেকে নিরাপত্তায় থাকবে। রাতে শোয়ার সময় পড়লে শয়তান নিকটবর্তী হবে না। পাঁচ ওয়াক্ত ফরয সালাতের পর পড়লে জান্নাত লাভে মৃত্যু ব্যতীত কোনো বাধা থাকবে না।" },
+            d2: { name: "২ নং যিকির: ৩ কুল (সুরা ইখলাস, ফালাক্ব ও নাস)", arabic: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ. قُلْ هُوَ اللَّهُ أَحَدٌ، اللَّهُ الصَّمَدُ، لَمْ يَلِدْ وَلَمْ يُولَدْ، وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ.<br><br>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ. قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ، مِن شَرِّ مَا خَلَقَ، وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ، وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ، وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ.<br><br>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ. قُلْ أَعُوذُ بِرَبِّ النَّاسِ، مَلِكِ النَّاسِ، إِلَهِ النَّاسِ، مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ، الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ، مِنَ الْجِنَّةِ وَالنَّاسِ.", trans: "উচ্চারণ: বিসমিল্লাহির রাহমানির রাহিম। কুল হুওয়াল্লা-হু আহাদ। আল্লা-হুস্ সমাদ। লাম ইয়ালিদ ওয়া লাম ইউলাদ। ওয়া লাম ইয়াকুল্লাহূ কুফুওয়ান আহাদ।<br><br>বিসমিল্লাহির রাহমানির রাহিম। কুল আঊযু বিরাব্বিল ফালাক্ব। মিন শাররি মা খালাক্ব। ওয়া মিন শাররি গাসিক্বিন ইযা ওয়াক্বাব। ওয়া মিন শাররিন নাফ্ফাসা-তি ফিল উক্বাদ। ওয়া মিন শাররি হাসিদিন ইযা হাসাদ।<br><br>বিসমিল্লাহির রাহমানির রাহিম। কুল আঊযু বিরাব্বিন নাস। মালিকিন নাস। ইলা-হিন নাস। মিন শাররিল ওয়াসওয়াসিল খান্নাস। আল্লাযী ইউওয়াসয়িসু ফী সুদূরিন নাস। মিনাল জিন্নাতি ওয়ান নাস।", meaning: "অর্থ: (সূরা ইখলাস) বলুন, তিনিই আল্লাহ, একক। আল্লাহ অমুখাপেক্ষী। তিনি কাউকে জন্ম দেননি এবং তাঁকেও জন্ম দেয়া হয়নি। আর তাঁর সমতুল্য কেউই নেই।<br><br>(সূরা ফালাক্ব) বলুন, আমি আশ্রয় প্রার্থনা করছি উষার রবের, তিনি যা সৃষ্টি করেছেন তার অনিষ্ট হতে, অন্ধকার রাতের অনিষ্ট হতে যখন তা গভীর হয়, গিরায় ফুঁকদানকারিনীদের অনিষ্ট হতে এবং হিংসুকের অনিষ্ট হতে যখন সে হিংসা করে।<br><br>(সূরা নাস) বলুন, আমি আশ্রয় চাই মানুষের রবের, মানুষের অধিপতির, মানুষের ইলাহের কাছে, আত্মগোপনকারী কুমন্ত্রণাদাতার অনিষ্ট হতে, যে মানুষের অন্তরে কুমন্ত্রণা দেয়, জিন ও মানুষের মধ্য হতে।", fazilat: "ফযীলত: সকাল ও সন্ধ্যায় ৩ বার করে পাঠকারীর জন্য সব কিছুর ক্ষতি থেকে নিরাপত্তার জন্য যথেষ্ট হয়ে যাবে।" },
+            d3: { name: "৩ নং যিকির: হাসবিয়াল্লাহু লা ইলাহা...", arabic: "حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ", trans: "উচ্চারণ: হাসবিয়াল্লা-হু লা ইলা-হা ইল্লা হুওয়া, ‘আলাইহি তাওয়াক্কালতু, ওয়াহুওয়া রাব্বুল ‘আরশিল ‘আযীম।", meaning: "অর্থ: আল্লাহই আমার জন্য যথেষ্ট, তিনি ছাড়া আর কোনো সত্য ইলাহ নেই। আমি তাঁর উপরই ভরসা করেছি, আর তিনি মহান আরশের রব।", fazilat: "ফযীলত: যে ব্যক্তি দু'আটি সকালে ৭ বার এবং সন্ধ্যায় ৭ বার বলবে, তার দুনিয়া ও আখিরাতের সকল দুশ্চিন্তা ও উৎকণ্ঠার জন্য আল্লাহই যথেষ্ট হবেন।" },
+            d4: { name: "৪ নং যিকির: সায়্যিদুল ইস্তিগফার", arabic: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ لَكَ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ", trans: "উচ্চারণ: আল্লা-হুম্মা আনতা রাব্বী লা ইলা-হা ইল্লা আনতা, খালাক্বতানী ওয়া আনা ‘আবদুকা, ওয়া আনা ‘আলা ‘আহদিকা ওয়া ওয়া‘দিকা মাসতাত্বা‘তু, আউযু বিকা মিন শাররি মা সানা‘তু, আবূউ লাকা বিনি‘মাতিকা ‘আলাইয়্যা, ওয়া আবূউ লাকা বিযাম্বী, ফাগফির লী, ফাইন্নাহূ লা ইয়াগফিরুয যুনূবা ইল্লা আনতা।", meaning: "অর্থ: হে আল্লাহ, আপনি আমার প্রতিপালক, আপনি ছাড়া কোন হক ইলাহ নেই। আপনি আমাকে সৃষ্টি করেছেন এবং আমি আপনার বান্দা। আর আমি আমার সাধ্যানুযায়ী আপনার (তাওহীদের) অঙ্গীকার ও (জান্নাতের) প্রতিশ্রুতির ওপর রয়েছি। আমার কৃতকর্মের অনিষ্ট থেকে আপনার কাছে আশ্রয় চাই। আমার প্রতি আপনার প্রদত্ত নিয়ামত স্বীকার করছি। আর আপনার কাছে আমার পাপকর্মেরও স্বীকারোক্তি দিচ্ছি। অতএব আপনি আমাকে মাফ করুন। নিশ্চয় আপনি ছাড়া আর কেউ গুনাহসমূহ মাফ করতে পারে না।", fazilat: "ফযীলত: দৃঢ় বিশ্বাসের সাথে সকাল এবং সন্ধ্যায় পাঠ করলে সেদিনে বা রাতে মারা গেলে নিশ্চিতভাবে জান্নাতী হবে।" },
+            d5: { name: "৫ নং যিকির: বিসমিল্লাহিল্লাজি লা ইয়াদুররু...", arabic: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ", trans: "উচ্চারণ: বিসমিল্লা-হিল্লাযী লা ইয়াদুররু মা‘আসমিহী শাইয়ুন ফিল আরদ্বি ওয়ালা ফিস্ সামা-ই, ওয়াহুওয়াস্ সামী‘উল ‘আলীম।", meaning: "অর্থ: শুরু করছি আল্লাহর নামে; যাঁর নামের সাথে আসমান এবং যমীনে কোনো কিছুই ক্ষতি করতে পারে না। আর তিনি সর্বশ্রোতা, মহাজ্ঞানী।", fazilat: "ফযীলত: যে ব্যক্তি প্রত্যহ সকাল ও সন্ধ্যায় এই দু'আ ৩ বার করে বলবে, কোনো কিছুই তার ক্ষতি করতে পারবে না।" },
+            d6: { name: "৬ নং যিকির: লা ইলাহা ইল্লাল্লাহু ওয়াহদাহু...", arabic: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", trans: "উচ্চারণ: লা ইলাহা ইল্লাল্লা-হু ওয়াহদাহু লা শারীকা লাহু, লাহুল মুলকু অলাহুলহামদু অহুয়া আলা কুল্লি শাইয়িন ক্বাদীর।", meaning: "অর্থ: একমাত্র আল্লাহ ছাড়া কোনো হক ইলাহ নেই, তাঁর কোনো শরীক নেই, রাজত্ব তাঁরই, সমস্ত প্রশংসাও তাঁরই, আর তিনি সব কিছুর উপর ক্ষমতাবান।", fazilat: "ফযীলত: ১০টি নেকী, ১০টি গুনাহ মাফ, ১০টি মর্যাদা বৃদ্ধি এবং শয়তান থেকে মুক্তি নসীব হবে।" },
+            d7_m: { name: "৭ নং যিকির: সকালের বিশেষ দু'আ", arabic: "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ", trans: "উচ্চারণ: আল্লা-হুম্মা বিকা আসবাহনা, ওয়াবিকা আমসাইনা, ওয়াবিকা নাহইয়া, ওয়াবিকা নামূতু, ওয়া ইলাইকান নুশূর।", meaning: "অর্থ: হে আল্লাহ, আমরা আপনার অনুগ্রহে সকালে উপনীত হয়েছি এবং আপনারই অনুগ্রহে আমরা সন্ধ্যায় উপনীত হয়েছি। আর আপনার করুণায় আমরা জীবিত থাকি, আপনার ইচ্ছায়ই আমরা মৃত্যুবরণ করব; আর আপনার কাছেই পুনরুত্থিত হব।", fazilat: "ফযীলত: নবী (সা.) এ দু'আ পড়ার প্রতি উৎসাহ দিয়েছেন।" },
+            d7_e: { name: "৭ নং যিকির: সন্ধ্যার বিশেষ দু'আ", arabic: "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ", trans: "উচ্চারণ: আল্লা-হুম্মা বিকা আমসাইনা, ওয়াবিকা আসবাহনা, ওয়াবিকা নাহইয়া, ওয়াবিকা নামূতু, ওয়া ইলাইকাল মাসীর।", meaning: "অর্থ: হে আল্লাহ, আমরা আপনার অনুগ্রহে সন্ধ্যায় উপনীত হয়েছি এবং আপনারই অনুগ্রহে আমরা সকালে উপনীত হয়েছি। আর আপনার করুণায় আমরা জীবিত থাকি, আপনার ইচ্ছায়ই আমরা মৃত্যুবরণ করব; আর আপনার দিকেই প্রত্যাবর্তিত হব।", fazilat: "ফযীলত: নবী (সা.) এ দু'আ পড়ার প্রতি উৎসাহ দিয়েছেন।" },
+            d8_m: { name: "৮ নং যিকির: ইসলামের প্রকৃতির ওপর সকাল", arabic: "أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، وَعَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ حَنِيفًا مُسْلِمًا وَمَا كَانَ مِنَ الْمُشْرِكِينَ", trans: "উচ্চারণ: আসবাহনা ‘আলা ফিতরাতিল ইসলাম, ওয়া ‘আলা কালিমাতিল ইখলাস, ওয়া ‘আলা দীনি নাবিয়্যিনা মুহাম্মাদিন সাল্লাল্লা-হু ‘আলাইহি ওয়াসাল্লাম, ওয়া ‘আলা মিল্লাতি আবীনা ইবরাহীমা হানীফাম মুসলিমাওঁ ওয়ামা কানা মিনাল মুশরিকীন।", meaning: "অর্থ: আমরা সকাল যাপন করেছি ইসলামের প্রকৃতির ওপর, ইখলাসের বাণী (তাওহীদ)-এর ওপর এবং আমাদের নবী মুহাম্মাদ (সা.)-এর ধর্মের উপর ও আমাদের পিতা ইবরাহীমের আদর্শের ওপর- যিনি ছিলেন একনিষ্ঠ মুসলিম, তিনি মুশরিকদের অন্তর্ভুক্ত ছিলেন না।", fazilat: "ফযীলত: নবী (সা.) এ বাক্যগুলো নিয়মিত বলতেন।" },
+            d8_e: { name: "৮ নং যিকির: ইসলামের প্রকৃতির ওপর সন্ধ্যা", arabic: "أَمْسَيْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، وَعَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ حَنِيفًا مُسْلِمًا وَمَا كَانَ مِنَ الْمُشْرِكِينَ", trans: "উচ্চারণ: আমসাইনা ‘আলা ফিতরাতিল ইসলাম, ওয়া ‘আলা কালিমাতিল ইখলাস, ওয়া ‘আলা দীনি নাবিয়্যিনা মুহাম্মাদিন সাল্লাল্লা-হু ‘আলাইহি ওয়াসাল্লাম, ওয়া ‘আলা মিল্লাতি আবীনা ইবরাহীমা হানীফাম মুসলিমাওঁ ওয়ামা কানা মিনাল মুশরিকীন।", meaning: "অর্থ: আমরা সন্ধ্যা যাপন করেছি ইসলামের প্রকৃতির ওপর, ইখলাসের বাণী (তাওহীদ)-এর ওপর এবং আমাদের নবী মুহাম্মাদ (সা.)-এর ধর্মের উপর ও আমাদের পিতা ইবরাহীমের আদর্শের ওপর- যিনি ছিলেন একনিষ্ঠ মুসলিম, তিনি মুশরিকদের অন্তর্ভুক্ত ছিলেন না।", fazilat: "ফযীলত: নবী (সা.) এ বাক্যগুলো নিয়মিত বলতেন।" },
+            d9: { name: "৯ নং যিকির: শয়তানের ফাঁদ থেকে আশ্রয়ের দু'আ", arabic: "اللَّهُمَّ فَاطِرَ السَّمَاوَاتِ وَالْأَرْضِ عَالِمَ الْغَيْبِ وَالشَّهَادَةِ لَا إِلَهَ إِلَّا أَنْتَ رَبَّ كُلِّ شَيْءٍ وَمَلِيْكَهُ، أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي وَمِنْ شَرِّ الشَّيْطَانِ وَشَرَكِهِ، وَأَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءًا، أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ", trans: "উচ্চারণ: আল্লা-হুম্মা ফা-ত্বিরাস্ সামা-ওয়া-তি ওয়াল আরদ্বি, ‘আ-লিমাল গাইবি ওয়াশ শাহা-দাহ, লা ইলা-হা ইল্লা আনতা রাব্বা কুল্লি শাইয়িন ওয়া মালীকাহু। আউযু বিকা মিন শাররি নাফসী, ওয়া মিন শাররিশ শাইত্বা-নি ওয়া শারাকিহী, ওয়া আন আক্বতারিফা ‘আলা নাফসী সূ-আন আও আজুররাহূ ইলা মুসলিম।", meaning: "অর্থ: হে আল্লাহ, হে আসমানসমূহ ও যমীনের স্রষ্টা, হে অদৃশ্য ও প্রকাশ্যের জ্ঞানী, হে সব কিছুর রব ও মালিক, আপনি ছাড়া আর কোনো হক ইলাহ নেই। আমি আপনার কাছে আশ্রয় চাই আমার আত্মার অনিষ্ট থেকে, শয়তানের অনিষ্ট থেকে ও তার ফাঁদ থেকে। আরো আশ্রয় চাই, আমার নিজের প্রতি কোনো অন্যায় করা অথবা কোনো মুসলিমের ওপর তা চাপিয়ে দেওয়া থেকে।", fazilat: "ফযীলত: রাসূলুল্লাহ (সা.) আবু বকর (রা.)-কে এই দু'আ শিক্ষা দিয়েছিলেন।" },
+            d10: { name: "১০ নং যিকির: সার্বিক নিরাপত্তার শ্রেষ্ঠ দু'আ", arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي", trans: "উচ্চারণ: আল্লা-হুম্মা ইন্নী আসআলুকাল ‘আফওয়া ওয়াল ‘আ-ফিয়াতা ফিদ্দুনইয়া ওয়াল আ-খিরাহ। আল্লা-হুম্মা ইন্নী আসআলুকাল ‘আফওয়া ওয়াল ‘আ-ফিয়াতা ফী দীনী ওয়াদুনইয়াইয়া ওয়া আহলী ওয়া মা-লী। আল্লা-হুম্মাসতুর ‘আওরা-তী ওয়া আ-মিন রাও‘আ-তী। আল্লা-হুম্মাহফাযনী মিম বাইনি ইয়াদাইয়্যা ওয়া মিন খালফী ওয়া ‘আন ইয়ামীনী ওয়া ‘আন শিমা-লী ওয়া মিন ফাওক্বী। ওয়া আউযু বি‘আযামাতিকা আন উগতা-লা মিন তাহতী।", meaning: "অর্থ: হে আল্লাহ, আমি আপনার নিকট দুনিয়া ও আখিরাতে ক্ষমা ও সুস্থতা-নিরাপত্তা প্রার্থনা করছি। হে আল্লাহ! আমি আপনার নিকট ক্ষমা এবং হেফাজত চাচ্ছি- আমার দীন, দুনিয়া, পরিবার ও অর্থ-সম্পদের। হে আল্লাহ, আপনি আমার গোপন ত্রুটিসমূহ ঢেকে রাখুন এবং আমাকে ভয়ভীতি থেকে নিরাপদে রাখুন। হে আল্লাহ, আপনি আমাকে হেফাজত করুন আমার সম্মুখ থেকে, আমার পেছনের দিক থেকে, আমার ডানদিক থেকে, আমার বামদিক থেকে এবং আমার উপরের দিক থেকে। আর আপনার মহত্ত্বের ওসিলায় আশ্রয় চাই ভূমি ধসে আমার আকস্মিক মৃত্যু থেকে।", fazilat: "ফযীলত: রাসূলুল্লাহ (সা.) কখনো সকাল-সন্ধ্যায় এ দু'আ ছাড়তেন না।" },
+            d11: { name: "১১ নং যিকির: শরীর, কান ও চোখের সুস্থতার দু'আ", arabic: "اللَّهُمَّ عَافِنِي فِي بَدَنِي اللَّهُمَّ عَافِنِي فِي سَمْعِي اللَّهُمَّ عَافِنِي فِي بَصَرِي، لَا إِلَهَ إِلَّا أَنْتَ، اَللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْكُفْرِ، وَالْفَقْرِ اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، لَا إِلَهَ إِلَّا أَنْتَ", trans: "উচ্চারণ: আল্লা-হুম্মা ‘আ-ফিনী ফী বাদানী, আল্লা-হুম্মা ‘আ-ফিনী ফী সাম‘ঈ, আল্লা-হুম্মা ‘আ-ফিনী ফী বাসারী। লা ইলা-হা ইল্লা আনতা। আল্লা-হুম্মা ইন্নী আউযু বিকা মিনাল কুফরি ওয়াল ফাক্বরি। আল্লা-হুম্মা ইন্নী আউযু বিকা মিন ‘আযা-বিল ক্বাবরি, লা ইলা-হা ইল্লা আনতা।", meaning: "অর্থ: হে আল্লাহ, আমাকে শারীরিকভাবে সুস্থ রাখুন। হে আল্লাহ, আমাকে আমার শ্রবণশক্তিতে সুস্থ রাখুন। হে আল্লাহ, আমাকে আমার দৃষ্টিশক্তিতে সুস্থ রাখুন। আপনি ছাড়া কোনো হক ইলাহ নেই। হে আল্লাহ, আমি আপনার কাছে আশ্রয় চাই কুফরি ও দারিদ্র্য থেকে। হে আল্লাহ আমি আপনার আশ্রয় চাই কবরের আযাব থেকে, আপনি ছাড়া আর কোনো হক ইলাহ নেই।", fazilat: "ফযীলত: নবী (সা.) নিয়মিত এ দু'আটি পড়তেন।" },
+            d12_m: { name: "১২ নং যিকির: আসবাহনা ওয়া আসবাহাল মুলকু...", arabic: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، وَأَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ", trans: "উচ্চারণ: আসবাহনা ওয়া আসবাহাল মুলকু লিল্লা-হি ওয়ালহামদু লিল্লা-হি, লা ইলা-হা ইল্লাল্লা-হু ওয়াহদাহু লা শারীকা লাহু, লাহুল মুলকু ওয়া লাহুল হামদু ওয়াহুওয়া ‘আলা কুল্লি শাইয়িন ক্বাদীর। রাব্বি আসআলুকা খাইরা মা ফী হাযাল ইয়াওমি ওয়া খাইরা মা বা‘দাহু, ওয়া আউযু বিকা মিন শাররি মা ফী হাযাল ইয়াওমি ওয়া শাররি মা বা‘দাহু। রাব্বি আউযু বিকা মিনাল কাসালি ওয়া সূ-ইল কিবারি, রাব্বি আউযু বিকা মিন ‘আযা-বিন ফিন্না-রি ওয়া ‘আযা-বিন ফিল ক্বাবরি।", meaning: "অর্থ: আমরা সকালে উপনীত হয়েছি এবং সৃষ্টিরাজ্যের সবকিছু আল্লাহর অনুগ্রহে দিনের মধ্যে প্রবেশ করেছে। সকল প্রশংসা আল্লাহর। আল্লাহ ছাড়া কোনো হক মাবুদ নেই, তিনি একক, তাঁর কোনো শরীক নেই। রাজত্ব তাঁরই এবং প্রশংসা তাঁরই। আর তিনি সব কিছুর ওপর ক্ষমতাবান। হে আমাদের প্রভু, আমি আপনার কাছে চাচ্ছি এ দিবসের মধ্যে যত কল্যাণ ও মঙ্গল রয়েছে তা এবং এ দিবসের পরে যত কল্যাণ রয়েছে, সেগুলোও। আর আমি আপনার আশ্রয় গ্রহণ করছি সকল অমঙ্গল ও অকল্যাণ থেকে যা এ দিবসের মধ্যে রয়েছে এবং যা তার পরে রয়েছে। হে আমার প্রভু, আমি আপনার আশ্রয় গ্রহণ করছি অলসতা থেকে ও বার্ধক্যের কষ্ট থেকে। হে আমার প্রভু, আমি আপনার আশ্রয় গ্রহণ করছি জাহান্নামের শাস্তি থেকে এবং কবরের শাস্তি থেকে।", fazilat: "ফযীলত: দিনের সকল কল্যাণ লাভ ও অপূর্ণতা-অলসতা থেকে হেফাজত।" },
+            d12_e: { name: "১২ নং যিকির: আমসাইনা ওয়া আমসাল মুলকু...", arabic: "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ", trans: "উচ্চারণ: আমসাইনা ওয়া আমসাল মুলকু লিল্লা-হি ওয়ালহামদু লিল্লা-হি, লা ইলা-হা ইল্লাল্লা-হু ওয়াহদাহু লা শারীকা লাহু, লাহুল মুলকু ওয়া লাহুল হামদু ওয়াহুওয়া ‘আলা কুল্লি শাইয়িন ক্বাদীর। রাব্বি আসআলুকা খাইরা মা ফী হাযিহিল লাইলাতি ওয়া খাইরা মা বা‘দাহা, ওয়া আউযু বিকা মিন শাররি মা ফী হাযিহিল লাইলাতি ওয়া শাররি মা বা‘দাহা। রাব্বি আউযু বিকা মিনাল কাসালি ওয়া সূ-ইল কিবারি, রাব্বি আউযু বিকা মিন ‘আযা-বিন ফিন্না-রি ওয়া ‘আযা-বিন ফিল ক্বাবরি।", meaning: "অর্থ: আমরা সন্ধ্যায় উপনীত হয়েছি এবং সৃষ্টিরাজ্যের সবকিছু আল্লাহর অনুগ্রহে রাতের মধ্যে প্রবেশ করেছে। সকল প্রশংসা আল্লাহর। আল্লাহ ছাড়া কোনো হক মাবুদ নেই, তিনি একক, তাঁর কোনো শরীক নেই। রাজত্ব তাঁরই এবং প্রশংসা তাঁরই। আর তিনি সব কিছুর ওপর ক্ষমতাবান। হে আমাদের প্রভু, আমি আপনার কাছে চাচ্ছি এ রাতের মধ্যে যত কল্যাণ ও মঙ্গল রয়েছে তা এবং এ রাতের পরে যত কল্যাণ রয়েছে, সেগুলোও। আর আমি আপনার আশ্রয় গ্রহণ করছি সকল অমঙ্গল ও অকল্যাণ থেকে যা এ রাতের মধ্যে রয়েছে এবং যা তার পরে রয়েছে। হে আমার প্রভু, আমি আপনার আশ্রয় গ্রহণ করছি অলসতা থেকে ও বার্ধক্যের কষ্ট থেকে। হে আমার প্রভু, আমি আপনার আশ্রয় গ্রহণ করছি জাহান্নামের শান্তি থেকে এবং কবরের শাস্তি থেকে।", fazilat: "ফযীলত: রাতের যাবতীয় কল্যাণ ও হেফাজত লাভ।" },
+            d13: { name: "১৩ নং যিকির: সুবহানাল্লাহি ওয়া বিহামদিহী", arabic: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", trans: "উচ্চারণ: সুবহা-নাল্লা-হি ওয়া বিহামদিহী।", meaning: "অর্থ: আল্লাহর পবিত্রতা বর্ণনা করছি এবং তাঁর প্রশংসা করছি।", fazilat: "ফযীলত: সকাল ও সন্ধ্যায় ১০০ বার পাঠে সমুদ্রের ফেনা পরিমাণ গুনাহ হলেও ক্ষমা করে দেওয়া হয়।" },
+            d14_m: { name: "১৪ নং যিকির: আল্লাহুম্মা ইন্নী আসবাহতু উশহিদুকা...", arabic: "اللَّهُمَّ إِنِّي أَصْبَحْتُ أُشْهِدُكَ وَأُشْهِدُ حَمَلَةَ عَرْشِكَ وَمَلَائِكَتَكَ وَجَمِيعَ خَلْقِكَ، بِأَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ وَحْدَكَ لَا شَرِيكَ لَكَ وَأَنَّ مُحَمَّدًا عَبْدُكَ وَرَسُولُكَ", trans: "উচ্চারণ: আল্লা-হুম্মা ইন্নী আসবাহতু উশহিদুকা ওয়া উশহিদু হামালাতা ‘আরশিকা ওয়া মালাইকাতাকা ওয়া জামী‘আ খালক্বিকা, বিআন্নাকা আনতাল্লা-হু লা ইলা-হা ইল্লা আনতা ওয়াহদাকা লা শারীকা লাকা, ওয়া আন্না মুহাম্মাদান ‘আবদুকা ওয়া রাসূলুকা।", meaning: "অর্থ: হে আল্লাহ, আমি সকালে উপনীত হয়েছি। আপনাকে সাক্ষী রাখছি, আরও সাক্ষী রাখছি আপনার 'আরশ বহনকারীদেরকে এবং আপনার ফেরেশতাগণকে ও আপনার সকল সৃষ্টিকে, (এই মর্মে) যে, নিশ্চয় আপনিই আল্লাহ, একমাত্র আপনি ছাড়া আর কোনো হক ইলাহ নেই, আপনার কোনো শরীক নেই; আর মুহাম্মাদ আপনার বান্দা ও রাসূল।", fazilat: "ফযীলত: ৪ বার বললে আল্লাহ তাকে জাহান্নাম থেকে মুক্ত করবেন।" },
+            d14_e: { name: "১৪ নং যিকির: আল্লাহুম্মা ইন্নী আমসাইতু উশহিদুকা...", arabic: "اللَّهُمَّ إِنِّي أَمْسَيْتُ أُشْهِدُكَ وَأُشْهِدُ حَمَلَةَ عَرْشِكَ وَمَلَائِكَتَكَ وَجَمِيعَ خَلْقِكَ، بِأَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ وَحْدَكَ لَا شَرِيكَ لَكَ وَأَنَّ مُحَمَّدًا عَبْدُكَ وَرَسُولُكَ", trans: "উচ্চারণ: আল্লা-হুম্মা ইন্নী আমসাইতু উশহিদুকা ওয়া উশহিদু হামালাতা ‘আরশিকা ওয়া মালাইকাতাকা ওয়া জামী‘আ খালক্বিকা, বিআন্নাকা আনতাল্লা-হু লা ইলা-হা ইল্লা আনতা ওয়াহদাকা লা শারীকা লাকা, ওয়া আন্না মুহাম্মাদান ‘আবদুকা ওয়া রাসূলুকা।", meaning: "অর্থ: হে আল্লাহ, আমি সন্ধ্যায় উপনীত হয়ে আপনাকে ও আপনার সৃষ্টিদের সাক্ষী রাখছি, (এই মর্মে) যে, নিশ্চয় আপনিই আল্লাহ, একমাত্র আপনি ছাড়া আর কোনো হক ইলাহ নেই, আপনার কোনো শরীক নেই; আর মুহাম্মাদ আপনার বান্দা ও রাসূল।", fazilat: "ফযীলত: ৪ বার বললে আল্লাহ তাকে জাহান্নাম থেকে মুক্ত করবেন।" },
+            d15: { name: "১৫ নং যিকির: ইয়া হাইয়্যু ইয়া ক্বাইয়্যূম...", arabic: "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ اَسْتَغِيْثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ", trans: "উচ্চারণ: য়া-হায়্যু ইয়া-ক্বাইয়ূমু বিরাহমাতিকা আসতাগীস, আসলিহ লী শানী কুল্লাহু, ওয়ালা তাকিলনী ইলা নাফসী ত্বারফাতা ‘আইন।", meaning: "অর্থ: হে চিরঞ্জীব, হে চিরস্থায়ী! আমি আপনার অনুগ্রহে সাহায্য-উদ্ধার কামনা করি, আপনি আমার সার্বিক অবস্থা সংশোধন করে দিন, আর আমাকে আমার নিজের কাছে এক পলকের জন্যও সোপর্দ করবেন না।", fazilat: "ফযীলত: নবী (সা.) ফাতিমা (রা.)-কে সকাল-সন্ধ্যায় এ বাক্যগুলো বলার ওসিয়ত করেছিলেন।" },
+            d16_m: { name: "১৬ নং যিকির: সকালের নিয়ামতের শোকরিয়া", arabic: "اللَّهُمَّ مَا أَصْبَحَ بِي مِنْ نِعْمَةٍ أَوْ بِأَحَدٍ مِّنْ خَلْقِكَ فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ، فَلَكَ الْحَمْدُ وَلَكَ الشُّكْرُ", trans: "উচ্চারণ: আল্লাহুম্মা মা আসবাহা বী মিন নি‘মাতিন আও বিআহাদিম মিন খালক্বিকা, ফামিনকা ওয়াহদাকা লা শারীকা লাকা, ফালাকাল হামদু ওয়ালাকাশ্ শুকরু।", meaning: "অর্থ: হে আল্লাহ, আমি অথবা আপনার যে কোনো সৃষ্টি যে কোনো নিয়ামতসহ সকালে উপনীত হয়েছি, তা শুধুই আপনার তরফ থেকে, আপনার কোনো অংশীদার নেই। সুতরাং আপনার জন্যই প্রশংসা ও কৃতজ্ঞতা।", fazilat: "ফযীলত: সকালে এ বাক্য বললে সারাদিনের শোকর-কৃতজ্ঞতা আদায় হয়ে যায়।" },
+            d16_e: { name: "১৬ নং যিকির: সন্ধ্যার নিয়ামতের শোকরিয়া", arabic: "اللَّهُمَّ مَا أَمْسَى بِي مِنْ نِعْمَةٍ أَوْ بِأَحَدٍ مِّنْ خَلْقِكَ فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ، فَلَكَ الْحَمْدُ وَلَكَ الشُّكْرُ", trans: "উচ্চারণ: আল্লাহুম্মা মা আমসা বী মিন নি‘মাতিন আও বিআহাদিম মিন খালক্বিকা, ফামিনকা ওয়াহদাকা লা শারীকা লাকা, ফালাকাল হামদু ওয়ালাকাশ্ শুকরু।", meaning: "অর্থ: হে আল্লাহ, আমি অথবা আপনার যে কোনো সৃষ্টি যে কোনো নিয়ামতসহ সন্ধ্যায় উপনীত হয়েছি, তা শুধুই আপনার তরফ থেকে, আপনার কোনো অংশীদার নেই। সুতরাং আপনার জন্যই প্রশংসা ও কৃতজ্ঞতা।", fazilat: "ফযীলত: সন্ধ্যায় এ বাক্য বললে সারারাতের শোকর-কৃতজ্ঞতা আদায় হয়ে যায়।" },
+            d17: { name: "১৭ নং যিকির: সৃষ্টির সংখ্যার সমান তাসবীহ", arabic: "سُبْحَانَ اللهِ وَبِحَمْدِهِ، عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ، وَزِنَةَ عَرْشِهِ، وَمِدَادَ كَلِمَاتِهِ", trans: "উচ্চারণ: সুবহা-নাল্লা-হি ওয়া বিহামদিহী, ‘আদাদা খালক্বিহী, ওয়া রিদ্বা নাফসিহী, ওয়া যিনাতা ‘আরশিহী, ওয়া মিদাদা কালিমা-তিহী।", meaning: "অর্থ: আমি আল্লাহর প্রশংসাসহ পবিত্রতা ও মহিমা ঘোষণা করছি, তাঁর সৃষ্টির সংখ্যার সমান, তাঁর নিজের সন্তোষের সমান, তাঁর আরশের ওজনের সমান ও তাঁর বাণীসমূহ লেখার কালি সমপরিমাণ।", fazilat: "ফযীলত: সকালে ৩ বার পাঠে দীর্ঘ সময় বসে আমল করার চেয়ে বেশি সাওয়াব লাভ।" },
+            d18: { name: "১৮ নং যিকির: ইলম, রিযিক ও আমলের দু'আ", arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُّتَقَبَّلاً", trans: "উচ্চারণ: আল্লা-হুম্মা ইন্নী আসআলুকা ‘ইলমান না-ফি‘আন, ওয়া রিযক্বান ত্বাইয়্যিবান, ওয়া ‘আমালাম মুতাক্বাব্বালান।", meaning: "অর্থ: হে আল্লাহ, আমি আপনার কাছে উপকারী জ্ঞান এবং হালাল রিযিক ও কবুলযোগ্য আমল চাই।", fazilat: "ফযীলত: ফজরের সালাতের পর রাসূলুল্লাহ (সা.) নিয়মিত বলতেন।" },
+            d19: { name: "১৯ নং যিকির: ক্ষতিকর প্রাণী ও কীট থেকে আশ্রয়", arabic: "اَعُوْذُ بِكَلِمَاتِ اللهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ", trans: "উচ্চারণ: আ‘ঊযু বিকালিমা-তিল্লা-হিত তাম্মা-তি মিন শাররি মা খালাক্ব।", meaning: "অর্থ: আল্লাহর পরিপূর্ণ কালিমাসমূহের মাধ্যমে আমি তাঁর নিকট তাঁর সৃষ্টির ক্ষতি থেকে আশ্রয় চাই।", fazilat: "ফযীলত: সন্ধ্যায় ৩ বার বললে রাতে কোনো বিষধর প্রাণী বা কীটপতঙ্গ ক্ষতি করতে পারবে না।" },
+            d20: { name: "২০ নং যিকির: সন্তুষ্টির ঘোষণা (রাদীতু বিল্লাহি...)", arabic: "رَضِيْتُ بِاللَّهِ رَبَّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ نَبِيًّا", trans: "উচ্চারণ: রাদ্বীতু বিল্লা-হি রাব্বান, ওয়াবিল ইসলা-মি দীনান, ওয়া বিমুহাম্মাদিন নাবিয়্যান।", meaning: "অর্থ: আমি সন্তুষ্টচিত্তে আল্লাহকে রব, ইসলামকে দীন ও মুহাম্মাদ (সা.)-কে নবীরূপে গ্রহণ করেছি।", fazilat: "ফযীলত: সকাল ও সন্ধ্যায় ৩ বার পাঠে কিয়ামতের দিন আল্লাহ তাকে সন্তুষ্ট করবেন।" },
+            d21: { name: "২১ নং যিকির: জাহান্নাম থেকে মুক্তির দু'আ", arabic: "اللَّهُمَّ أَجِرْنِي مِنْ النَّارِ", trans: "উচ্চারণ: আল্লা-হুম্মা আজিরনী মিনান্নার।", meaning: "অর্থ: হে আল্লাহ, আমাকে জাহান্নামের আগুন থেকে রক্ষা করুন।", fazilat: "ফযীলত: ফজর ও মাগরিবের পর ৭ বার পাঠে জাহান্নাম থেকে মুক্তি।" },
+            d_la_ilaha: { name: "লা ইলাহা ইল্লাল্লাহ", arabic: "لَا إِلَهَ إِلَّا اللَّهُ", trans: "উচ্চারণ: লা- ইলা-হা ইল্লাল্লা-হ।", meaning: "অর্থ: আল্লাহ ছাড়া আর কোনো মাবুদ (হক ইলাহ) নেই।", fazilat: "ফযীলত: এটি সর্বোত্তম যিকির। ১০ জন দাস মুক্তির সওয়াব, ১০০ নেকি ও ১০০ গুনাহ মাফ মেলে।" }
+        };
+
+        // NEW CHRONOLOGICAL STRUCTURE (মুমিনের ২৪ ঘণ্টা) - Total Marks 100.0
+        const trackerSchema = [
+            {
+                id: "cat_fajr",
+                title: "শেষ রাত ও ফজর",
+                subtitle: "তাহাজ্জুদ থেকে ইশরাকের পূর্ব পর্যন্ত",
+                icon: "🌄",
+                type: "list",
+                items: [
+                    { 
+                        id: "waking_dua", name: "ঘুম থেকে ওঠার দু'আ পড়েছি", points: 0.5,
+                        arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ",
+                        trans: "উচ্চারণ: আলহামদু লিল্লা-হিল্লাযী আহ্ইয়ানা বা‘দামা আমাতানা ওয়া ইলাইহিন্ নুশূর।",
+                        meaning: "অর্থ: সকল প্রশংসা আল্লাহর জন্য, যিনি আমাদের মৃত (ঘুমন্ত) রাখার পর পুনরায় জীবিত করেছেন। আর তাঁর দিকেই আমাদের ফিরে যেতে হবে।",
+                        fazilat: "ফযীলত: মৃত্যুর মত ঘুম থেকে উঠে নতুন জীবন পাওয়ার শুকরিয়া আদায় করা হয়। (সহীহ বুখারী)"
+                    },
+                    { id: "tahajjud", name: "তাহাজ্জুদ নামাজ আদায় করেছি", points: 1, fazilat: "ফরজ নামাজের পর সর্বোত্তম নামাজ হলো রাতের (তাহাজ্জুদের) নামাজ। (সহীহ মুসলিম)" },
+                    { 
+                        id: "wudu_fajr", name: "ফজরের ওযুর পূর্বে মেসওয়াক ও শেষে কালেমা", points: 1,
+                        fazilat: "১. <b>মেসওয়াক:</b> এটি মুখের পবিত্রতা ও আল্লাহর সন্তুষ্টির মাধ্যম। (নাসায়ী)<br><br>২. <b>কালেমা শাহাদাত:</b> ওযুর পর কালেমা শাহাদাত পড়লে জান্নাতের ৮টি দরজাই খুলে দেওয়া হবে, সে যেকোনো দরজা দিয়ে প্রবেশ করতে পারবে। (সহীহ মুসলিম)"
+                    },
+                    { id: "fajr_sunnah", name: "ফজরের ২ রাকাত সুন্নত", badge: "সুন্নতে মুয়াক্কাদা", points: 1, fazilat: "ফজরের দুই রাকাত সুন্নত দুনিয়া ও তার ভেতরের সবকিছুর চেয়েও উত্তম। (সহীহ মুসলিম)" },
+                    { 
+                        id: "fajr_fard", name: "ফজরের ফরজ নামাজ আদায়", type: "multiplier", multiplier: 1, maxVal: 3, points: 3,
+                        pillTexts: ["একাকী", "জামাতে", "তাকবীরে উলা"], subText: "জামাতে (২) বা তাকবীরে উলার (৩) সাথে আদায় করলে বেশি মার্ক",
+                        fazilat: "১. যে ব্যক্তি ফজর জামাতে আদায় করে, সে সারাদিন আল্লাহর জিম্মায় (নিরাপত্তায়) থাকে। (সহীহ মুসলিম)<br><br>২. তাকবীরে উলার সাথে নামাজ পড়লে মুনাফেকী ও জাহান্নাম থেকে মুক্তি মেলে। (তিরমিযী)<br><br><span style='color:var(--primary);font-weight:bold;'>💡 মহিলাদের জন্য নোট:</span> আউয়াল ওয়াক্তে (প্রথম সময়ে) নামাজ পড়লে তাকবীরে উলার মার্ক (৩), সময়মতো পড়লে জামাতের মার্ক (২) এবং ওয়াক্তের শেষদিকে (দেরি করে) পড়লে একাকী পড়ার মার্ক (১) হিসেবে গণ্য হবে।"
+                    },
+                    { 
+                        id: "ps_fajr", name: "নামাজের পর সব মাসনুন আমল করেছি", points: 1,
+                        btnText: "বিস্তারিত দেখুন", btnTextClose: "বিস্তারিত লুকান",
+                        fazilat: postSalatDetails
+                    },
+                    { id: "quran_yasin", name: "ফজরের পর সূরা ইয়াসিন তিলাওয়াত", points: 2, fazilat: "দিনের শুরুতে সূরা ইয়াসিন তিলাওয়াত করলে ওই দিনের সকল প্রয়োজন পূর্ণ করা হয়। (দারেমী)" }
+                ]
+            },
+            {
+                id: "morning_adhkar",
+                title: "সকালের মাসনুন দু'আ ও যিকির",
+                subtitle: "ফজরের পর থেকে যোহরের পূর্ব পর্যন্ত",
+                icon: "🌅",
+                type: "dua_list",
+                items: [
+                    { id: "m_1", ...rawDuas.d1, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_2", ...rawDuas.d2, count: "সকালে ৩ বার করে", points: 0.5 },
+                    { id: "m_3", ...rawDuas.d3, count: "সকালে ৭ বার", points: 0.5 },
+                    { id: "m_4", ...rawDuas.d4, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_5", ...rawDuas.d5, count: "সকালে ৩ বার", points: 0.5 },
+                    { id: "m_6", ...rawDuas.d6, count: "১০ বার / ১০০ বার", points: 0.5 },
+                    { id: "m_7", ...rawDuas.d7_m, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_8", ...rawDuas.d8_m, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_9", ...rawDuas.d9, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_10", ...rawDuas.d10, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_11", ...rawDuas.d11, count: "সকালে ৩ বার", points: 0.5 },
+                    { id: "m_12", ...rawDuas.d12_m, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_13", ...rawDuas.d13, count: "সকালে ১০০ বার", points: 0.5 },
+                    { id: "m_14", ...rawDuas.d14_m, count: "সকালে ৪ বার", points: 0.5 },
+                    { id: "m_15", ...rawDuas.d15, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_16", ...rawDuas.d16_m, count: "সকালে ১ বার", points: 0.5 },
+                    { id: "m_17", ...rawDuas.d17, count: "সকালে ৩ বার", points: 0.5 },
+                    { id: "m_18", ...rawDuas.d18, count: "ফজরের পর ১ বার", points: 0.5 },
+                    { id: "m_20", ...rawDuas.d20, count: "সকালে ৩ বার", points: 0.5 },
+                    { id: "m_21", ...rawDuas.d21, count: "ফজরের পর ৭ বার", points: 0.5 },
+                    { id: "m_istighfar_100", name: "১০০ বার ইস্তেগফার পড়েছি", arabic: "أَسْتَغْفِرُ اللَّهَ", trans: "উচ্চারণ: আস্তাগফিরুল্লাহ", meaning: "অর্থ: আমি আল্লাহর কাছে ক্ষমা প্রার্থনা করছি।", count: "সকালে ১০০ বার", points: 1, fazilat: "আল্লাহ তাকে সব দুশ্চিন্তা থেকে মুক্তি দেন এবং ধারণাতীত স্থান থেকে রিযিক দান করেন। (আবু দাউদ)" },
+                    { id: "m_durud_100", name: "১০০ বার দরুদ শরিফ পড়েছি", arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ", trans: "উচ্চারণ: আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিও ওয়া আলা আলি মুহাম্মাদ", meaning: "অর্থ: হে আল্লাহ, মুহাম্মাদ (সা.) ও তাঁর পরিবারের উপর রহমত বর্ষণ করুন।", count: "সকালে ১০০ বার", points: 0.5, fazilat: "একবার দরুদ পড়লে আল্লাহ ১০টি রহমত বর্ষণ করেন এবং হাশরের মাঠে শাফায়াত নসিব হয়। (সহীহ মুসলিম)" },
+                    { id: "m_subhanallah_100", name: "১০০ বার সুবহানাল্লাহ পড়েছি", arabic: "سُبْحَانَ اللَّهِ", trans: "উচ্চারণ: সুবহানাল্লাহ", meaning: "অর্থ: আল্লাহ পবিত্র, সকল ত্রুটি থেকে মুক্ত।", count: "সকালে ১০০ বার", points: 0.5, fazilat: "আল্লাহর রাস্তায় ১০০ উট দানের চেয়ে উত্তম। (তিরমিযী)" },
+                    { id: "m_alhamdulillah_100", name: "১০০ বার আলহামদুলিল্লাহ পড়েছি", arabic: "الْحَمْدُ لِلَّهِ", trans: "উচ্চারণ: আলহামদুলিল্লাহ", meaning: "অর্থ: সকল প্রশংসা আল্লাহর জন্য।", count: "সকালে ১০০ বার", points: 0.5, fazilat: "জিহাদের জন্য আরোহনকারীসহ ১০০ অশ্ব দানের চেয়ে উত্তম। (তিরমিযী)" },
+                    { id: "m_allahuakbar_100", name: "১০০ বার আল্লাহু আকবার পড়েছি", arabic: "اللَّهُ أَكْبَرُ", trans: "উচ্চারণ: আল্লাহু আকবার", meaning: "অর্থ: আল্লাহ সবচেয়ে মহান।", count: "সকালে ১০০ বার", points: 0.5, fazilat: "১০০ ক্রীতদাস মুক্ত করার চেয়ে উত্তম। (তিরমিযী)" },
+                    { id: "m_lailaha_100", ...rawDuas.d_la_ilaha, count: "সকালে ১০০ বার", points: 0.5 }
+                ]
+            },
+            {
+                id: "cat_zuhr",
+                title: "সকাল ও যোহর",
+                subtitle: "ইশরাক থেকে আসরের পূর্ব পর্যন্ত",
+                icon: "☀️",
+                type: "list",
+                items: [
+                    { id: "ishraq", name: "ইশরাক নামাজ পড়েছি", points: 1, fazilat: "ফজর জামাতে পড়ে সূর্যোদয় পর্যন্ত জিকির করে ২ রাকাত ইশরাক পড়লে একটি পূর্ণ হজ ও ওমরাহর সওয়াব পাওয়া যায়। (তিরমিযী)" },
+                    { id: "chasht", name: "চাশতের (সালাতুদ দুহা) নামাজ পড়েছি", points: 1, fazilat: "চাশতের নামাজ মানুষের শরীরের ৩৬০টি জোড়ার সদকা আদায়ের সমতুল্য। (সহীহ মুসলিম)" },
+                    { 
+                        id: "wudu_zuhr", name: "যোহরের ওযুর পূর্বে মেসওয়াক ও শেষে কালেমা", points: 1,
+                        fazilat: "১. <b>মেসওয়াক:</b> এটি মুখের পবিত্রতা ও আল্লাহর সন্তুষ্টির মাধ্যম। (নাসায়ী)<br><br>২. <b>কালেমা শাহাদাত:</b> ওযুর পর কালেমা শাহাদাত পড়লে জান্নাতের ৮টি দরজাই খুলে দেওয়া হবে, সে যেকোনো দরজা দিয়ে প্রবেশ করতে পারবে। (সহীহ মুসলিম)"
+                    },
+                    { id: "zuhr_sunnah", name: "যোহরের পূর্বের ও পরের সুন্নত (৬ রাকাত)", badge: "সুন্নতে মুয়াক্কাদা", points: 1, fazilat: "যে ব্যক্তি যোহরের পূর্বে ৪ রাকাত এবং পরে ২ রাকাত পড়ে, আল্লাহ তার জন্য জান্নাতে একটি ঘর বানাবেন। (সহীহ মুসলিম)" },
+                    { 
+                        id: "zuhr_fard", name: "যোহরের ফরজ নামাজ আদায়", type: "multiplier", multiplier: 1, maxVal: 3, points: 3,
+                        pillTexts: ["একাকী", "জামাতে", "তাকবীরে উলা"], subText: "জামাতে (২) বা তাকবীরে উলার (৩) সাথে আদায় করলে বেশি মার্ক",
+                        fazilat: "১. রাসূলুল্লাহ (সা.) বলেছেন, যোহরের সময় আসমানের দরজাগুলো খুলে দেওয়া হয়, আর আমি পছন্দ করি এই সময়ে আমার নেক আমল আল্লাহর কাছে উঠুক। (তিরমিযী)<br><br>২. তাকবীরে উলার সাথে নামাজ পড়লে মুনাফেকী ও জাহান্নাম থেকে মুক্তি মেলে। (তিরমিযী)<br><br><span style='color:var(--primary);font-weight:bold;'>💡 মহিলাদের জন্য নোট:</span> আউয়াল ওয়াক্তে (প্রথম সময়ে) নামাজ পড়লে তাকবীরে উলার মার্ক (৩), সময়মতো পড়লে জামাতের মার্ক (২) এবং ওয়াক্তের শেষদিকে (দেরি করে) পড়লে একাকী পড়ার মার্ক (১) হিসেবে গণ্য হবে।"
+                    },
+                    { 
+                        id: "ps_zuhr", name: "নামাজের পর সব মাসনুন আমল করেছি", points: 1,
+                        btnText: "বিস্তারিত দেখুন", btnTextClose: "বিস্তারিত লুকান",
+                        fazilat: postSalatDetails
+                    }
+                ]
+            },
+            {
+                id: "cat_asr",
+                title: "আসর ও বিকেল",
+                subtitle: "আসরের সময় থেকে মাগরিবের পূর্ব পর্যন্ত",
+                icon: "🌤️",
+                type: "list",
+                items: [
+                    { 
+                        id: "wudu_asr", name: "আসরের ওযুর পূর্বে মেসওয়াক ও শেষে কালেমা", points: 1,
+                        fazilat: "১. <b>মেসওয়াক:</b> এটি মুখের পবিত্রতা ও আল্লাহর সন্তুষ্টির মাধ্যম। (নাসায়ী)<br><br>২. <b>কালেমা শাহাদাত:</b> ওযুর পর কালেমা শাহাদাত পড়লে জান্নাতের ৮টি দরজাই খুলে দেওয়া হবে, সে যেকোনো দরজা দিয়ে প্রবেশ করতে পারবে। (সহীহ মুসলিম)"
+                    },
+                    { 
+                        id: "asr_fard", name: "আসরের ফরজ নামাজ আদায়", type: "multiplier", multiplier: 1, maxVal: 3, points: 3,
+                        pillTexts: ["একাকী", "জামাতে", "তাকবীরে উলা"], subText: "জামাতে (২) বা তাকবীরে উলার (৩) সাথে আদায় করলে বেশি মার্ক",
+                        fazilat: "১. যে ব্যক্তি ইচ্ছাকৃতভাবে আসরের নামাজ ছেড়ে দেয়, তার ওই দিনের সকল নেক আমল বাতিল হয়ে যায়। (সহীহ বুখারী)<br><br>২. ফজর ও আসরের নামাজে দিন ও রাতের ফেরেশতারা একত্রিত হন এবং আল্লাহর কাছে বান্দার ইবাদতের সাক্ষ্য দেন। (সহীহ বুখারী)<br><br><span style='color:var(--primary);font-weight:bold;'>💡 মহিলাদের জন্য নোট:</span> আউয়াল ওয়াক্তে (প্রথম সময়ে) নামাজ পড়লে তাকবীরে উলার মার্ক (৩), সময়মতো পড়লে জামাতের মার্ক (২) এবং ওয়াক্তের শেষদিকে (দেরি করে) পড়লে একাকী পড়ার মার্ক (১) হিসেবে গণ্য হবে।"
+                    },
+                    { 
+                        id: "ps_asr", name: "নামাজের পর সব মাসনুন আমল করেছি", points: 1,
+                        btnText: "বিস্তারিত দেখুন", btnTextClose: "বিস্তারিত লুকান",
+                        fazilat: postSalatDetails
+                    }
+                ]
+            },
+            {
+                id: "evening_adhkar",
+                title: "সন্ধ্যার মাসনুন দু'আ ও যিকির",
+                subtitle: "আসর বা মাগরিব পরবর্তী আমল",
+                icon: "🌇",
+                type: "dua_list",
+                items: [
+                    { id: "e_1", ...rawDuas.d1, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_2", ...rawDuas.d2, count: "সন্ধ্যায় ৩ বার করে", points: 0.5 },
+                    { id: "e_3", ...rawDuas.d3, count: "সন্ধ্যায় ৭ বার", points: 0.5 },
+                    { id: "e_4", ...rawDuas.d4, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_5", ...rawDuas.d5, count: "সন্ধ্যায় ৩ বার", points: 0.5 },
+                    { id: "e_6", ...rawDuas.d6, count: "১০ বার / ১০০ বার", points: 0.5 },
+                    { id: "e_7", ...rawDuas.d7_e, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_8", ...rawDuas.d8_e, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_9", ...rawDuas.d9, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_10", ...rawDuas.d10, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_11", ...rawDuas.d11, count: "সন্ধ্যায় ৩ বার", points: 0.5 },
+                    { id: "e_12", ...rawDuas.d12_e, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_13", ...rawDuas.d13, count: "সন্ধ্যায় ১০০ বার", points: 0.5 },
+                    { id: "e_14", ...rawDuas.d14_e, count: "সন্ধ্যায় ৪ বার", points: 0.5 },
+                    { id: "e_15", ...rawDuas.d15, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_16", ...rawDuas.d16_e, count: "সন্ধ্যায় ১ বার", points: 0.5 },
+                    { id: "e_19", ...rawDuas.d19, count: "সন্ধ্যায় ৩ বার", points: 0.5 },
+                    { id: "e_20", ...rawDuas.d20, count: "সন্ধ্যায় ৩ বার", points: 0.5 },
+                    { id: "e_21", ...rawDuas.d21, count: "মাগরিবের পর ৭ বার", points: 0.5 },
+                    { id: "e_istighfar_100", name: "১০০ বার ইস্তেগফার পড়েছি", arabic: "أَسْتَغْفِرُ اللَّهَ", trans: "উচ্চারণ: আস্তাগফিরুল্লাহ", meaning: "অর্থ: আমি আল্লাহর কাছে ক্ষমা প্রার্থনা করছি।", count: "সন্ধ্যায় ১০০ বার", points: 1, fazilat: "আল্লাহ তাকে সব দুশ্চিন্তা থেকে মুক্তি দেন এবং ধারণাতীত স্থান থেকে রিযিক দান করেন। (আবু দাউদ)" },
+                    { id: "e_durud_100", name: "১০০ বার দরুদ শরিফ পড়েছি", arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ", trans: "উচ্চারণ: আল্লাহুম্মা সাল্লি আলা মুহাম্মাদিও ওয়া আলা আলি মুহাম্মাদ", meaning: "অর্থ: হে আল্লাহ, মুহাম্মাদ (সা.) ও তাঁর পরিবারের উপর রহমত বর্ষণ করুন।", count: "সন্ধ্যায় ১০০ বার", points: 0.5, fazilat: "একবার দরুদ পড়লে আল্লাহ ১০টি রহমত বর্ষণ করেন এবং হাশরের মাঠে শাফায়াত নসিব হয়। (সহীহ মুসলিম)" },
+                    { id: "e_subhanallah_100", name: "১০০ বার সুবহানাল্লাহ পড়েছি", arabic: "سُبْحَانَ اللَّهِ", trans: "উচ্চারণ: সুবহানাল্লাহ", meaning: "অর্থ: আল্লাহ পবিত্র, সকল ত্রুটি থেকে মুক্ত।", count: "সন্ধ্যায় ১০০ বার", points: 0.5, fazilat: "আল্লাহর রাস্তায় ১০০ উট দানের চেয়ে উত্তম। (তিরমিযী)" },
+                    { id: "e_alhamdulillah_100", name: "১০০ বার আলহামদুলিল্লাহ পড়েছি", arabic: "الْحَمْدُ لِلَّهِ", trans: "উচ্চারণ: আলহামদুলিল্লাহ", meaning: "অর্থ: সকল প্রশংসা আল্লাহর জন্য।", count: "সন্ধ্যায় ১০০ বার", points: 0.5, fazilat: "জিহাদের জন্য আরোহনকারীসহ ১০০ অশ্ব দানের চেয়ে উত্তম। (তিরমিযী)" },
+                    { id: "e_allahuakbar_100", name: "১০০ বার আল্লাহু আকবার পড়েছি", arabic: "اللَّهُ أَكْبَرُ", trans: "উচ্চারণ: আল্লাহু আকবার", meaning: "অর্থ: আল্লাহ সবচেয়ে মহান।", count: "সন্ধ্যায় ১০০ বার", points: 0.5, fazilat: "১০০ ক্রীতদাস মুক্ত করার চেয়ে উত্তম। (তিরমিযী)" },
+                    { id: "e_lailaha_100", ...rawDuas.d_la_ilaha, count: "সন্ধ্যায় ১০০ বার", points: 0.5 }
+                ]
+            },
+            {
+                id: "cat_maghrib",
+                title: "মাগরিবের আমল",
+                subtitle: "মাগরিবের ওয়াক্ত থেকে ইশার পূর্ব পর্যন্ত",
+                icon: "🕌",
+                type: "list",
+                items: [
+                    { 
+                        id: "wudu_maghrib", name: "মাগরিবের ওযুর পূর্বে মেসওয়াক ও শেষে কালেমা", points: 1,
+                        fazilat: "১. <b>মেসওয়াক:</b> এটি মুখের পবিত্রতা ও আল্লাহর সন্তুষ্টির মাধ্যম। (নাসায়ী)<br><br>২. <b>কালেমা শাহাদাত:</b> ওযুর পর কালেমা শাহাদাত পড়লে জান্নাতের ৮টি দরজাই খুলে দেওয়া হবে, সে যেকোনো দরজা দিয়ে প্রবেশ করতে পারবে। (সহীহ মুসলিম)"
+                    },
+                    { 
+                        id: "maghrib_fard", name: "মাগরিবের ফরজ নামাজ আদায়", type: "multiplier", multiplier: 1, maxVal: 3, points: 3,
+                        pillTexts: ["একাকী", "জামাতে", "তাকবীরে উলা"], subText: "জামাতে (২) বা তাকবীরে উলার (৩) সাথে আদায় করলে বেশি মার্ক",
+                        fazilat: "১. নবী (সা.) বলেছেন, আমার উম্মত ততদিন ফিতরাতের (সত্য ধর্মের) ওপর থাকবে, যতদিন তারা আকাশে তারা দেখা দেওয়ার আগেই (আউয়াল ওয়াক্তে) মাগরিব আদায় করবে। (ইবনে মাজাহ)<br><br>২. মাগরিবের পর কারও সাথে কথা বলার আগে ৭ বার 'আল্লাহুম্মা আজিরনী মিনান নার' পড়ে মারা গেলে জাহান্নাম থেকে মুক্তি। (আবু দাউদ)<br><br><span style='color:var(--primary);font-weight:bold;'>💡 মহিলাদের জন্য নোট:</span> আউয়াল ওয়াক্তে (প্রথম সময়ে) নামাজ পড়লে তাকবীরে উলার মার্ক (৩), সময়মতো পড়লে জামাতের মার্ক (২) এবং ওয়াক্তের শেষদিকে (দেরি করে) পড়লে একাকী পড়ার মার্ক (১) হিসেবে গণ্য হবে।"
+                    },
+                    { 
+                        id: "ps_maghrib", name: "নামাজের পর সব মাসনুন আমল করেছি", points: 1,
+                        btnText: "বিস্তারিত দেখুন", btnTextClose: "বিস্তারিত লুকান",
+                        fazilat: postSalatDetails
+                    },
+                    { id: "maghrib_sunnah", name: "মাগরিবের ২ রাকাত সুন্নত", badge: "সুন্নতে মুয়াক্কাদা", points: 1, fazilat: "এটি ১২ রাকাত সুন্নতে মুয়াক্কাদার অন্তর্ভুক্ত। জান্নাতে ঘরের নিশ্চয়তা রয়েছে। (সহীহ মুসলিম)" },
+                    { id: "awwabin", name: "আওয়াবিন / অন্য নফল নামাজ পড়েছি", points: 1, fazilat: "মাগরিবের পর ৬ রাকাত নফল পড়লে ১২ বছর ইবাদতের সওয়াব পাওয়া যায়। (তিরমিযী)" },
+                    { id: "maghrib_waqiah", name: "সূরা ওয়াক্বিয়াহ তিলাওয়াত", points: 2, fazilat: "প্রতি রাতে সূরা ওয়াক্বিয়াহ পাঠ করলে তাকে কখনো অভাব বা দারিদ্র্য স্পর্শ করে না। (বায়হাকী)" }
+                ]
+            },
+            {
+                id: "night_adhkar_section",
+                title: "ইশা ও রাতের আমল",
+                subtitle: "ইশা থেকে ঘুমানোর পূর্ব পর্যন্ত",
+                icon: "🌌",
+                type: "list",
+                items: [
+                    { 
+                        id: "wudu_isha", name: "ইশার ওযুর পূর্বে মেসওয়াক ও শেষে কালেমা", points: 1,
+                        fazilat: "১. <b>মেসওয়াক:</b> এটি মুখের পবিত্রতা ও আল্লাহর সন্তুষ্টির মাধ্যম। (নাসায়ী)<br><br>২. <b>কালেমা শাহাদাত:</b> ওযুর পর কালেমা শাহাদাত পড়লে জান্নাতের ৮টি দরজাই খুলে দেওয়া হবে, সে যেকোনো দরজা দিয়ে প্রবেশ করতে পারবে। (সহীহ মুসলিম)"
+                    },
+                    { 
+                        id: "isha_fard", name: "ইশার ফরজ নামাজ আদায়", type: "multiplier", multiplier: 1, maxVal: 3, points: 3,
+                        pillTexts: ["একাকী", "জামাতে", "তাকবীরে উলা"], subText: "জামাতে (২) বা তাকবীরে উলার (৩) সাথে আদায় করলে বেশি মার্ক",
+                        fazilat: "১. যে ব্যক্তি ইশার নামাজ জামাতে আদায় করে, সে যেন অর্ধেক রাত নফল ইবাদত করল। (সহীহ মুসলিম)<br><br>২. মুনাফিকদের কাছে ফজর ও ইশার চেয়ে ভারী নামাজ নেই। সওয়াব জানলে হামাগুড়ি দিয়ে আসত। (সহীহ বুখারী)<br><br><span style='color:var(--primary);font-weight:bold;'>💡 মহিলাদের জন্য নোট:</span> আউয়াল ওয়াক্তে (প্রথম সময়ে) নামাজ পড়লে তাকবীরে উলার মার্ক (৩), সময়মতো পড়লে জামাতের মার্ক (২) এবং ওয়াক্তের শেষদিকে (দেরি করে) পড়লে একাকী পড়ার মার্ক (১) হিসেবে গণ্য হবে।"
+                    },
+                    { 
+                        id: "ps_isha", name: "নামাজের পর সব মাসনুন আমল করেছি", points: 1,
+                        btnText: "বিস্তারিত দেখুন", btnTextClose: "বিস্তারিত লুকান",
+                        fazilat: postSalatDetails
+                    },
+                    { id: "isha_sunnah", name: "ইশার ২ রাকাত সুন্নত", badge: "সুন্নতে মুয়াক্কাদা", points: 1, fazilat: "এটি ১২ রাকাত সুন্নতে মুয়াক্কাদার অন্তর্ভুক্ত। জান্নাতে ঘরের নিশ্চয়তা রয়েছে। (সহীহ মুসলিম)" },
+                    { id: "night_mulk", name: "সূরা মুলক তিলাওয়াত করেছি", points: 2, fazilat: "এই সূরা কবরের আযাব থেকে রক্ষা করে এবং জান্নাতে নিয়ে যায়। (তিরমিযী)" },
+                    { id: "night_sajdah", name: "সূরা আলিফ লাম মীম সাজদাহ তিলাওয়াত", points: 2, fazilat: "রাসূলুল্লাহ (সা.) রাতে সূরা সাজদাহ ও সূরা মুলক না পড়ে ঘুমাতেন না। (তিরমিযী)" },
+                    { id: "night_baqarah_last2", name: "সূরা বাকারার শেষ ২ আয়াত তিলাওয়াত", points: 1, fazilat: "যে ব্যক্তি রাতে এই দুটি আয়াত পাঠ করবে, তা তার জন্য যাবতীয় বিপদ থেকে রক্ষায় যথেষ্ট হবে। (সহীহ বুখারী)" },
+                    { id: "night_3qul", name: "ঘুমানোর আগে ৩ কুল (ইখলাস, ফালাক, নাস) পড়ে ফুঁ দিয়েছি", points: 1, fazilat: "এটি নবীজির নিয়মিত সুন্নাহ ছিল, যা অমঙ্গল ও জাদু-টোনা থেকে রক্ষা করে। (সহীহ বুখারী)" },
+                    { id: "night_ayatul_kursi", name: "ঘুমানোর আগে আয়াতুল কুরসি পড়েছি", points: 1, fazilat: "সারা রাত আল্লাহর পক্ষ থেকে একজন পাহারাদার নিযুক্ত থাকে এবং শয়তান কাছে আসতে পারে না। (সহীহ বুখারী)" },
+                    { id: "night_wudu", name: "ঘুমানোর আগে ওযু করে শুয়েছি", points: 1, fazilat: "পবিত্র অবস্থায় ঘুমালে ফেরেশতা সারারাত ক্ষমা প্রার্থনা করে। (ইবনে হিব্বান)" },
+                    { id: "night_sleep_dua", name: "ঘুমানোর আগের মাসনুন দু'আ পড়েছি", points: 0.5, fazilat: "আল্লাহর নামে ঘুমিয়ে পড়ার এবং মৃত্যুর মত ঘুম থেকে উঠে নতুন জীবন পাওয়ার শুকরিয়া আদায় করা হয়। (সহীহ বুখারী)" },
+                    { id: "night_tasbih_fatemi", name: "ঘুমানোর আগে তাসবীহ ফাতেমী (৩৩,৩৩,৩৪) পড়েছি", points: 0.5, fazilat: "এটি একজন খাদেম বা দাসীর সাহায্য পাওয়ার চেয়েও বেশি উত্তম। (সহীহ বুখারী)" }
+                ]
+            },
+            {
+                id: "daily_general_amal",
+                title: "সারাদিনের অন্যান্য আমল",
+                subtitle: "সুন্নাহ, কোরআন, ইলম, আখলাক ও সমাজ",
+                icon: "🌿",
+                type: "list",
+                items: [
+                    { 
+                        id: "adhan_sunnah", name: "আযানের সুন্নতগুলো আদায় করেছি", points: 1,
+                        fazilat: "<b>আযানের সুন্নতসমূহ:</b><br>১. মুয়াজ্জিন যা বলে তা-ই বলা (তবে 'হাইয়া আলাস সালাহ/ফালাহ' এর জবাবে লা-হাওলা... বলা)।<br>২. আযান শেষে দরুদ শরিফ পড়া।<br>৩. আযানের মাসনুন দু'আ পড়া।<br>৪. আযান ও ইকামতের মাঝে নিজের জন্য দু'আ করা।<br><br><b>ফযীলত:</b> যে ব্যক্তি আযানের পর মাসনুন দু'আ পড়ে, কিয়ামতের দিন তার জন্য রাসূল (সা.) এর সুপারিশ ওয়াজিব হয়ে যায়। (সহীহ বুখারী)" 
+                    },
+                    { 
+                        id: "sunnah_clothes", name: "পোশাক পরিধানের ক্ষেত্রে সুন্নত আদায় করেছি", points: 0.5,
+                        fazilat: "বিসমিল্লাহ বলে ডান দিক থেকে পরিধান করা এবং খোলার সময় বাম দিক থেকে খোলা সুন্নত। পুরুষদের জন্য টাখনুর ওপরে কাপড় পরা আবশ্যক। এতে দৈনন্দিন সাধারণ কাজও ইবাদতে পরিণত হয়।" 
+                    },
+                    { 
+                        id: "tahiyatul_wudu", name: "তাহিয়্যাতুল ওযু (অন্তত ২ রাকাত নফল)", points: 1,
+                        subText: "সারাদিনে ওযুর পর অন্তত একবার ২ রাকাত পড়লে ১ মার্ক",
+                        fazilat: "ওযুর পর মনোযোগের সাথে দুই রাকাত তাহিয়্যাতুল ওযু পড়লে তার জন্য জান্নাত ওয়াজিব হয়ে যায়। (সহীহ মুসলিম, ২২৪)"
+                    },
+                    { id: "meal_sunnah", name: "খাবারের শুরুতে ও শেষে আল্লাহকে স্মরণ করেছি", points: 2, fazilat: "খাবার শেষে আলহামদুলিল্লাহ বললে আল্লাহ বান্দার প্রতি সন্তুষ্ট হন। (সহীহ মুসলিম)" },
+                    { id: "always_wudu", name: "সারাক্ষণ ওযুর সাথে থাকার চেষ্টা করেছি", points: 2, fazilat: "পবিত্র (ওযু) অবস্থায় ঘুমালে একজন ফেরেশতা সারারাত তার জন্য ক্ষমা প্রার্থনা করতে থাকে। (ইবনে হিব্বান)" },
+                    { id: "toilet_dua", name: "টয়লেটে প্রবেশ ও বের হওয়ার দোয়া পড়েছি", points: 1, fazilat: "এটি জিন ও শয়তানের চোখ থেকে মানুষের লজ্জাস্থানকে আড়াল করে রাখে এবং অপবিত্রতা থেকে বাঁচায়। (তিরমিযী)" },
+                    { id: "munajat_10m", name: "অন্তত ১০ মিনিট একান্তে মুনাজাত করেছি", points: 1, fazilat: "দোয়া হলো ইবাদতের মূল; যে আল্লাহর কাছে কিছু চায় না, আল্লাহ তার ওপর রাগান্বিত হন। (তিরমিযী)" },
+                    { id: "quran_new_tilawat", name: "আজকের নতুন তিলাওয়াত / ১ রুকু বা পৃষ্ঠা পড়েছি", points: 2, fazilat: "কুরআনের প্রতিটি হরফ পাঠে ১০টি নেকী পাওয়া যায়। (তিরমিযী)" },
+                    { id: "quran_kahf", name: "সূরা কাহাফ তিলাওয়াত করেছি (জুমাবার স্পেশাল)", badge: "জুমাবার", points: 1, showOnDay: 5, fazilat: "যে ব্যক্তি জুমার দিন সূরা কাহাফ তিলাওয়াত করবে, দুই জুমার মধ্যবর্তী সময় তার জন্য একটি নূর (আলো) প্রজ্জ্বলিত থাকবে। (বায়হাকী)" },
+                    { id: "quran_hifz", name: "কুরআন হিফজ করেছি (কমপক্ষে এক আয়াত হলেও)", points: 1, fazilat: "কিয়ামতের দিন বলা হবে, 'পড়তে থাকো এবং জান্নাতের সিঁড়িতে উঠতে থাকো'। (আবু দাউদ)" },
+                    { id: "quran_tafsir", name: "কুরআনের তাফসির বা অর্থ পড়েছি", points: 1, fazilat: "যারা আল্লাহর কিতাব নিয়ে অধ্যয়ন করে, তাদের ওপর প্রশান্তি নাযিল হয়। (সহীহ মুসলিম)" },
+                    { id: "parents_talk", name: "বাবা-মায়ের সাথে কথা বলেছি / খেদমত করেছি", points: 1.5, fazilat: "পিতা-মাতার সন্তুষ্টিতে আল্লাহর সন্তুষ্টি এবং তাদের অসন্তুষ্টিতে আল্লাহর অসন্তুষ্টি। (তিরমিযী)" },
+                    { id: "relatives_care", name: "আত্মীয়দের খোঁজ নিয়েছি", points: 1, fazilat: "আত্মীয়তার সম্পর্ক বজায় রাখলে রিযিক ও আয়ু বৃদ্ধি পায়। (সহীহ বুখারী)" },
+                    { id: "sadakah_done", name: "গোপনে বা প্রকাশ্যে সদকাহ করেছি", points: 1, fazilat: "পানি যেমন আগুন নেভায়, দান বা সদকাহ তেমনি গুনাহ মুছে ফেলে। (তিরমিযী)" },
+                    { id: "help_someone", name: "কাউকে সাহায্য করেছি বা উপকার করেছি", points: 1, fazilat: "বান্দা যতক্ষণ অন্যের সাহায্যে রত থাকে, আল্লাহও তার সাহায্যে রত থাকেন। (সহীহ মুসলিম)" },
+                    { id: "ilm_learn", name: "আজকে নতুন কোনো দ্বীনি ইলম অর্জন করেছি", points: 1.5, fazilat: "জ্ঞান অর্জনের পথ জান্নাতের পথকে সহজ করে দেয়। (সহীহ মুসলিম)" },
+                    { id: "dawah_give", name: "আজকে কাউকে দাওয়াহ দিয়েছি / নসিহত করেছি", points: 1, fazilat: "সৎপথের দিকে ডাকলে অনুসরণকারীদের সমপরিমাণ সওয়াব পাওয়া যায়। (সহীহ মুসলিম)" },
+                    { id: "talim_home", name: "ঘরে তালিম করেছি", points: 1, fazilat: "আল্লাহর জিকিরের মজলিসকে ফেরেশতারা বেষ্টন করে রাখে এবং রহমত ঢেকে নেয়। (সহীহ মুসলিম)" },
+                    { id: "truth_speech", name: "মিথ্যা, পরনিন্দা ও গিবত থেকে বেঁচে ছিলাম", points: 2, pointsOnDay: { 5: 1.5 }, fazilat: "জিহ্বা ও লজ্জাস্থানের হেফাজতকারীর জন্য জান্নাতের নিশ্চয়তা। (সহীহ বুখারী)" },
+                    { id: "eye_guard", name: "চোখের হেফাজত করেছি ও হারাম দেখিনি", points: 1.5, fazilat: "হারাম দৃষ্টি শয়তানের বিষাক্ত তীর, তা থেকে বাঁচলে ইবাদতে ঈমানের স্বাদ পাওয়া যায়। (তাবারানী)" },
+                    { id: "anger_control", name: "রাগ নিয়ন্ত্রণ ও সুন্দর আচরণ করেছি", points: 1.5, fazilat: "রাগ সংবরণকারীকে কিয়ামতের দিন হুর বেছে নেওয়ার অধিকার দেওয়া হবে। (আবু দাউদ)" },
+                    { id: "time_proper", name: "সময়ের সদ্ব্যবহার করেছি (অহেতুক কাজ থেকে দূরে ছিলাম)", points: 1.5, pointsOnDay: { 5: 1.0 }, fazilat: "যৌবন ও সময়ের হিসাব দেওয়া ছাড়া হাশরের মাঠে কেউ এক কদমও নড়তে পারবে না। (তিরমিযী)" }
+                ]
+            }
+        ];
+
+        let currentDateStr = getTodayDateStr();
+        let currentMonthStr = getTodayDateStr().substring(0, 7);
+        let activeTab = 'daily';
+
+        let collapsedCategories = {};
+        let expandedDuas = {};
+
+        const banglaMonths = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+        const banglaDays = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
+        const bnNums = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
+        const toBn = (num) => {
+            if (num === undefined || num === null) return '০';
+            let n = Number(num);
+            if (isNaN(n)) return String(num); 
+            let s = Number.isInteger(n) ? n.toString() : n.toFixed(1).replace('.0', '');
+            return s.split('').map(x => bnNums[x] || x).join('');
+        };
+
+        function getTodayDateStr() {
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            const d = String(today.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatBanglaDate(dateStr) {
+            const d = new Date(dateStr + "T00:00:00");
+            const day = d.getDate();
+            const month = banglaMonths[d.getMonth()];
+            const year = d.getFullYear();
+            const dayName = banglaDays[d.getDay()];
+            return `${toBn(day)} ${month} ${toBn(year)}, ${dayName}`;
+        }
+
+        function formatBanglaMonth(monthStr) {
+            const [y, m] = monthStr.split('-');
+            const month = banglaMonths[parseInt(m) - 1];
+            return `${month} ${toBn(y)}`;
+        }
+
+        function getHijriDateStr(date) {
+            try {
+                const fmt = new Intl.DateTimeFormat('en-u-ca-islamic-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                const parts = fmt.formatToParts(date);
+                const day = parts.find(p => p.type === 'day').value;
+                const month = parts.find(p => p.type === 'month').value;
+                const year = parts.find(p => p.type === 'year').value;
+                
+                const hijriMonths = ["মুহাররম", "সফর", "রবিউল আউয়াল", "রবিউস সানি", "জমাদিউল আউয়াল", "জমাদিউস সানি", "রজব", "শাবান", "রমজান", "শাওয়াল", "জিলকদ", "জিলহজ"];
+                
+                let dayStr = toBn(day);
+                let dNum = parseInt(day);
+                let suffix = "";
+                if(dNum === 1) suffix = "লা";
+                else if(dNum === 2 || dNum === 3) suffix = "রা";
+                else if(dNum === 4) suffix = "থা";
+                else if(dNum >= 5 && dNum <= 18) suffix = "ই";
+                else if(dNum >= 19 && dNum <= 31) suffix = "শে";
+                
+                return `${dayStr}${suffix} ${hijriMonths[parseInt(month)-1]}, ${toBn(year)} হিজরি`;
+            } catch(e) {
+                return "";
+            }
+        }
+
+        function getStorageKey(dateStr) { return `amal_tracker_${dateStr}`; }
+        function getStoredData(dateStr) {
+            const raw = localStorage.getItem(getStorageKey(dateStr));
+            return raw ? JSON.parse(raw) : { checked: {}, note: "" };
+        }
+        function saveStoredData(dateStr, data) { localStorage.setItem(getStorageKey(dateStr), JSON.stringify(data)); }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function updateCircularProgress(earned, max) {
+            const progressRing = document.getElementById('progressRing');
+            const progressText = document.getElementById('progressText');
+            const radius = progressRing.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            
+            progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+            const percent = max > 0 ? (earned / max) * 100 : 0;
+            const offset = circumference - (percent / 100) * circumference;
+            
+            progressRing.style.strokeDashoffset = offset;
+            progressText.innerText = `${toBn(Math.round(percent))}%`;
+
+            if(percent >= 80) progressRing.style.stroke = '#10b981'; 
+            else if(percent >= 50) progressRing.style.stroke = '#f59e0b'; 
+            else progressRing.style.stroke = '#ef4444'; 
+
+            // Update floating pill data
+            document.getElementById('floatScore').innerText = `${toBn(earned)} / ${toBn(max)}`;
+            document.getElementById('floatPct').innerText = `${toBn(Math.round(percent))}%`;
+        }
+
+        function toggleDua(id, e) {
+            if (e) e.stopPropagation();
+            expandedDuas[id] = !expandedDuas[id];
+            const detailsEl = document.getElementById('details_' + id);
+            const btnEl = document.getElementById('btn_' + id);
+            
+            if (expandedDuas[id]) {
+                detailsEl.style.display = 'block';
+                let btnClose = "ফযীলত লুকান";
+                if(btnEl.dataset.closeText) btnClose = btnEl.dataset.closeText;
+                btnEl.innerHTML = '▼ ' + btnClose;
+            } else {
+                detailsEl.style.display = 'none';
+                let btnOpen = "ফযীলত দেখুন";
+                if(btnEl.dataset.openText) btnOpen = btnEl.dataset.openText;
+                btnEl.innerHTML = '▶ ' + btnOpen;
+            }
+        }
+
+        function switchTab(tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+
+            const dailyNav = document.getElementById('dailyNavBar');
+            const quoteBlock = document.getElementById('dailyQuoteBlock');
+
+            // Hide floating pill when changing tabs
+            document.getElementById('floatingProgress').classList.remove('show');
+
+            if (tabName === 'daily') {
+                document.getElementById('tabDaily').classList.add('active');
+                document.querySelectorAll('.tab-item')[0].classList.add('active');
+                dailyNav.style.display = 'flex';
+                quoteBlock.style.display = 'block';
+                renderDailyTracker();
+            } else if (tabName === 'monthly') {
+                document.getElementById('tabMonthly').classList.add('active');
+                document.querySelectorAll('.tab-item')[1].classList.add('active');
+                dailyNav.style.display = 'none';
+                quoteBlock.style.display = 'none';
+                renderMonthlyReport();
+            } else {
+                document.getElementById('tabSettings').classList.add('active');
+                document.querySelectorAll('.tab-item')[2].classList.add('active');
+                dailyNav.style.display = 'none';
+                quoteBlock.style.display = 'none';
+            }
+        }
+
+        function renderDailyTracker() {
+            const container = document.getElementById('categoryContainer');
+            const data = getStoredData(currentDateStr);
+            container.innerHTML = "";
+
+            let totalDayEarned = 0;
+            let totalDayMax = 0;
+            const dw = new Date(currentDateStr + "T00:00:00").getDay();
+
+            trackerSchema.forEach(cat => {
+                let catMax = 0;
+                let catEarned = 0;
+                let visibleItemsCount = 0;
+
+                cat.items.forEach(item => {
+                    let valid = true;
+                    if (item.showOnDay !== undefined && item.showOnDay !== dw) valid = false;
+                    if (item.hideOnDay !== undefined && item.hideOnDay === dw) valid = false;
+                    if (!valid) return;
+
+                    visibleItemsCount++;
+                    
+                    let itemPts = item.points;
+                    if (item.pointsOnDay && item.pointsOnDay[dw] !== undefined) {
+                        itemPts = item.pointsOnDay[dw];
+                    }
+
+                    if (item.type === 'multiplier') {
+                        const maxVal = item.maxVal * item.multiplier;
+                        catMax += maxVal;
+                        const val = data.checked[item.id] || 0;
+                        catEarned += (val * item.multiplier);
+                    } else {
+                        catMax += itemPts;
+                        if (data.checked[item.id]) {
+                            catEarned += itemPts;
+                        }
+                    }
+                });
+
+                if (visibleItemsCount === 0) return;
+
+                totalDayEarned += catEarned;
+                totalDayMax += catMax;
+
+                const card = document.createElement('div');
+                card.className = 'cat-card';
+
+                const isCatDone = (catEarned >= catMax && catMax > 0);
+                const scoreBadgeClass = isCatDone ? 'completed' : '';
+                const isCollapsed = collapsedCategories[cat.id] === true;
+
+                const catHeader = document.createElement('div');
+                catHeader.className = 'cat-header';
+                
+                catHeader.innerHTML = `
+                    <div class="cat-left">
+                        <div class="cat-icon">${cat.icon}</div>
+                        <div class="cat-info">
+                            <h3>${cat.title}</h3>
+                            <span>${cat.subtitle} (${toBn(catMax)} মার্ক)</span>
+                        </div>
+                    </div>
+                    <div class="cat-right">
+                        <span class="cat-score-badge ${scoreBadgeClass}">${toBn(catEarned)}</span>
+                        <div class="cat-toggle ${isCollapsed ? 'collapsed' : ''}">▼</div>
+                    </div>
+                `;
+
+                const contentBox = document.createElement('div');
+                contentBox.className = 'question-list';
+                if (isCollapsed) contentBox.style.display = 'none';
+
+                if (cat.type === 'dua_list') {
+                    cat.items.forEach(item => {
+                        let valid = true;
+                        if (item.showOnDay !== undefined && item.showOnDay !== dw) valid = false;
+                        if (item.hideOnDay !== undefined && item.hideOnDay === dw) valid = false;
+                        if (!valid) return;
+
+                        let itemPts = item.points;
+                        if (item.pointsOnDay && item.pointsOnDay[dw] !== undefined) {
+                            itemPts = item.pointsOnDay[dw];
+                        }
+
+                        const isChecked = !!data.checked[item.id];
+                        const isExp = !!expandedDuas[item.id];
+                        const detailsStyle = isExp ? 'display: block;' : 'display: none;';
+                        
+                        const btnTextOpen = item.btnText || 'ফযীলত দেখুন';
+                        const btnTextClose = item.btnTextClose || 'ফযীলত লুকান';
+                        const btnText = isExp ? '▼ ' + btnTextClose : '▶ ' + btnTextOpen;
+                        
+                        let btnHtml = '';
+                        if (item.fazilat || item.arabic || item.meaning) {
+                            btnHtml = `<div id="btn_${item.id}" class="inline-toggle-btn" data-open-text="${btnTextOpen}" data-close-text="${btnTextClose}" onclick="toggleDua('${item.id}', event)">${btnText}</div>`;
+                        }
+
+                        const qItem = document.createElement('div');
+                        qItem.className = `q-item ${isChecked ? 'completed' : ''}`;
+                        
+                        qItem.innerHTML = `
+                            <div class="q-row" onclick="toggleItem('${item.id}')">
+                                <div class="q-left">
+                                    <div class="custom-check">${isChecked ? '✓' : ''}</div>
+                                    <div class="q-text-wrap">
+                                        <div class="q-text">${item.name}</div>
+                                        <div class="badge-btn-row">
+                                            <div class="q-badge">${item.count}</div>
+                                            ${btnHtml}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="q-points">+${toBn(itemPts)}</div>
+                            </div>
+                            <div id="details_${item.id}" class="dua-box" style="${detailsStyle}">
+                                ${item.arabic ? `<div class="arabic-text">${item.arabic}</div>` : ''}
+                                ${item.trans ? `<div class="trans-text">${item.trans}</div>` : ''}
+                                ${item.meaning ? `<div class="meaning-text" style="margin-bottom: 6px;">${item.meaning}</div>` : ''}
+                                ${item.fazilat ? `<div class="fazilat-text" style="margin-bottom: 0;">${item.fazilat}</div>` : ''}
+                            </div>
+                        `;
+                        contentBox.appendChild(qItem);
+                    });
+                } else {
+                    cat.items.forEach(item => {
+                        let valid = true;
+                        if (item.showOnDay !== undefined && item.showOnDay !== dw) valid = false;
+                        if (item.hideOnDay !== undefined && item.hideOnDay === dw) valid = false;
+                        if (!valid) return;
+
+                        let itemPts = item.points;
+                        if (item.pointsOnDay && item.pointsOnDay[dw] !== undefined) {
+                            itemPts = item.pointsOnDay[dw];
+                        }
+
+                        let fazilatHtml = '';
+                        let btnHtml = '';
+                        
+                        if (item.fazilat || item.arabic || item.meaning) {
+                            const isExp = !!expandedDuas[item.id];
+                            const detailsStyle = isExp ? 'display: block;' : 'display: none;';
+                            const btnTextOpen = item.btnText || 'ফযীলত দেখুন';
+                            const btnTextClose = item.btnTextClose || 'ফযীলত লুকান';
+                            const btnText = isExp ? '▼ ' + btnTextClose : '▶ ' + btnTextOpen;
+                            
+                            btnHtml = `<div id="btn_${item.id}" class="inline-toggle-btn" data-open-text="${btnTextOpen}" data-close-text="${btnTextClose}" onclick="toggleDua('${item.id}', event)">${btnText}</div>`;
+                            
+                            fazilatHtml = `
+                                <div id="details_${item.id}" class="dua-box" style="${detailsStyle}">
+                                    ${item.arabic ? `<div class="arabic-text">${item.arabic}</div>` : ''}
+                                    ${item.trans ? `<div class="trans-text">${item.trans}</div>` : ''}
+                                    ${item.meaning ? `<div class="meaning-text" style="margin-bottom: 6px;">${item.meaning}</div>` : ''}
+                                    ${item.fazilat ? `<div class="fazilat-text" style="margin-bottom: 0;">${item.fazilat}</div>` : ''}
+                                </div>
+                            `;
+                        }
+
+                        if (item.type === 'multiplier') {
+                            const currentVal = data.checked[item.id] || 0;
+                            const ratingItem = document.createElement('div');
+                            ratingItem.className = `rating-item ${currentVal > 0 ? 'has-val' : ''}`;
+
+                            let pillsHtml = '';
+                            for (let i = 1; i <= item.maxVal; i++) {
+                                const isSel = (currentVal === i);
+                                const pillLabel = item.pillTexts ? item.pillTexts[i-1] : toBn(i);
+                                const fs = item.pillTexts ? 'font-size: 11.5px; padding: 2px;' : 'font-size: 14px; font-weight: bold;';
+                                pillsHtml += `
+                                    <div class="rating-pill ${isSel ? 'selected' : ''}" onclick="setMultiplierVal('${item.id}', ${i})">
+                                        <span class="pill-num" style="${fs}">${pillLabel}</span>
+                                        ${item.unitText ? `<span class="pill-sub">${item.unitText}</span>` : ''}
+                                    </div>
+                                `;
+                            }
+
+                            ratingItem.innerHTML = `
+                                <div class="rating-top">
+                                    <div class="q-text-wrap" style="width: auto;">
+                                        <div class="rating-title">${item.icon ? item.icon + ' ' : ''}${item.name}</div>
+                                        ${btnHtml ? `<div class="badge-btn-row">${btnHtml}</div>` : ''}
+                                    </div>
+                                    <div class="q-points">${currentVal > 0 ? '+' + toBn(currentVal * item.multiplier) : '+০'} / +${toBn(item.maxVal * item.multiplier)}</div>
+                                </div>
+                                ${item.subText ? `<div class="rating-sub">${item.subText}</div>` : ''}
+                                <div class="rating-pills">${pillsHtml}</div>
+                                ${fazilatHtml}
+                            `;
+                            contentBox.appendChild(ratingItem);
+                        } else {
+                            const isChecked = !!data.checked[item.id];
+                            const qItem = document.createElement('div');
+                            qItem.className = `q-item ${isChecked ? 'completed' : ''}`;
+                            qItem.innerHTML = `
+                                <div class="q-row" onclick="toggleItem('${item.id}')">
+                                    <div class="q-left">
+                                        <div class="custom-check">${isChecked ? '✓' : ''}</div>
+                                        <div class="q-text-wrap">
+                                            <div class="q-text">${item.icon ? item.icon + ' ' : ''}${item.name}</div>
+                                            <div class="badge-btn-row">
+                                                ${item.badge ? `<div class="q-badge" style="color:var(--primary); font-weight:bold; background:var(--primary-light)">${item.badge}</div>` : ''}
+                                                ${btnHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="q-points">+${toBn(itemPts)}</div>
+                                </div>
+                                ${fazilatHtml}
+                            `;
+                            contentBox.appendChild(qItem);
+                        }
+                    });
+                }
+
+                catHeader.onclick = () => {
+                    const isHidden = contentBox.style.display === 'none';
+                    contentBox.style.display = isHidden ? '' : 'none';
+                    catHeader.querySelector('.cat-toggle').classList.toggle('collapsed', !isHidden);
+                    collapsedCategories[cat.id] = !isHidden;
+                };
+
+                card.appendChild(catHeader);
+                card.appendChild(contentBox);
+                container.appendChild(card);
+            });
+
+            document.getElementById('scorePillTop').innerHTML = `<span id="totalMarksDisplayTop">${toBn(totalDayEarned)}</span> / ${toBn(totalDayMax)}`;
+            document.getElementById('progressMarksText').innerHTML = `<span id="totalMarksDisplayRing">${toBn(totalDayEarned)}</span> <span style="font-size: 14px; font-weight: normal; opacity: 0.8;">/ ${toBn(totalDayMax)}</span>`;
+            
+            document.getElementById('dateText').innerText = formatBanglaDate(currentDateStr);
+            document.getElementById('hijriDate').innerText = getHijriDateStr(new Date(currentDateStr + "T00:00:00"));
+            
+            document.getElementById('datePicker').value = currentDateStr;
+            document.getElementById('dailyNote').value = data.note || "";
+
+            setTimeout(() => { updateCircularProgress(totalDayEarned, totalDayMax); }, 50);
+        }
+
+        function toggleItem(itemId) {
+            const data = getStoredData(currentDateStr);
+            data.checked[itemId] = !data.checked[itemId];
+            saveStoredData(currentDateStr, data);
+            renderDailyTracker();
+        }
+
+        function setMultiplierVal(itemId, val) {
+            const data = getStoredData(currentDateStr);
+            if (data.checked[itemId] === val) data.checked[itemId] = 0;
+            else data.checked[itemId] = val;
+            saveStoredData(currentDateStr, data);
+            renderDailyTracker();
+        }
+
+        function saveNote() {
+            const data = getStoredData(currentDateStr);
+            data.note = document.getElementById('dailyNote').value;
+            saveStoredData(currentDateStr, data);
+        }
+
+        function shiftDate(delta) {
+            const d = new Date(currentDateStr + "T00:00:00");
+            d.setDate(d.getDate() + delta);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            currentDateStr = `${y}-${m}-${day}`;
+            renderDailyTracker();
+        }
+
+        function onDateChange(e) {
+            if (e.target.value) {
+                currentDateStr = e.target.value;
+                renderDailyTracker();
+            }
+        }
+
+        function resetCurrentDay() {
+            if (confirm('আপনি কি নিশ্চিত যে আজকের সকল মার্কস ও নোট রিসেট করতে চান?')) {
+                localStorage.removeItem(getStorageKey(currentDateStr));
+                renderDailyTracker();
+                showToast('রিসেট সম্পন্ন হয়েছে!');
+            }
+        }
+
+        /* Monthly Report */
+        function shiftMonth(delta) {
+            const [y, m] = currentMonthStr.split('-').map(Number);
+            const d = new Date(y, m - 1 + delta, 1);
+            currentMonthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            renderMonthlyReport();
+        }
+
+        function onMonthChange(e) {
+            if (e.target.value) { currentMonthStr = e.target.value; renderMonthlyReport(); }
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function renderMonthlyReport() {
+            document.getElementById('monthText').innerText = formatBanglaMonth(currentMonthStr);
+            document.getElementById('monthPicker').value = currentMonthStr;
+
+            const [yearStr, monthStr] = currentMonthStr.split('-');
+            const year = parseInt(yearStr);
+            const month = parseInt(monthStr);
+            const totalDaysInMonth = getDaysInMonth(year, month);
+
+            const today = new Date();
+            let effectiveDays = totalDaysInMonth;
+            if (today.getFullYear() === year && (today.getMonth() + 1) === month) {
+                effectiveDays = today.getDate();
+            }
+
+            const itemPossibleDays = {};
+            trackerSchema.forEach(cat => {
+                cat.items.forEach(item => {
+                    itemPossibleDays[item.id] = 0;
+                    for (let d = 1; d <= effectiveDays; d++) {
+                        const dateStr = `${currentMonthStr}-${String(d).padStart(2, '0')}`;
+                        const dw = new Date(dateStr + "T00:00:00").getDay();
+                        let valid = true;
+                        if (item.showOnDay !== undefined && item.showOnDay !== dw) valid = false;
+                        if (item.hideOnDay !== undefined && item.hideOnDay === dw) valid = false;
+                        if (valid) itemPossibleDays[item.id]++;
+                    }
+                });
+            });
+
+            const sectionDaysQualified = {};
+            trackerSchema.forEach(cat => sectionDaysQualified[cat.id] = 0);
+            const itemCounts = {};
+
+            let activeDaysCount = 0;
+            let totalEarnedInMonth = 0;
+            let bestScore = 0;
+            const dailyScores = [];
+            let sumDayMax = 0;
+
+            for (let day = 1; day <= totalDaysInMonth; day++) {
+                const dayStr = String(day).padStart(2, '0');
+                const fullDate = `${currentMonthStr}-${dayStr}`;
+                const dw = new Date(fullDate + "T00:00:00").getDay();
+                const raw = localStorage.getItem(getStorageKey(fullDate));
+                
+                let dayScore = 0;
+                let dayMax = 0;
+                let hasEntry = !!raw;
+                const parsed = raw ? JSON.parse(raw) : {checked: {}};
+
+                const dayCatEarned = {};
+                const dayCatMax = {};
+                trackerSchema.forEach(cat => {
+                    dayCatEarned[cat.id] = 0;
+                    dayCatMax[cat.id] = 0;
+                });
+
+                trackerSchema.forEach(cat => {
+                    cat.items.forEach(item => {
+                        let valid = true;
+                        if (item.showOnDay !== undefined && item.showOnDay !== dw) valid = false;
+                        if (item.hideOnDay !== undefined && item.hideOnDay === dw) valid = false;
+
+                        if (valid) {
+                            let itemPts = item.points;
+                            if (item.pointsOnDay && item.pointsOnDay[dw] !== undefined) {
+                                itemPts = item.pointsOnDay[dw];
+                            }
+
+                            if (item.type === 'multiplier') {
+                                dayCatMax[cat.id] += item.maxVal * item.multiplier;
+                                dayMax += item.maxVal * item.multiplier;
+                            } else {
+                                dayCatMax[cat.id] += itemPts;
+                                dayMax += itemPts;
+                            }
+
+                            if (parsed.checked && parsed.checked[item.id]) {
+                                if (item.type === 'multiplier') {
+                                    const val = parsed.checked[item.id] || 0;
+                                    const pts = val * item.multiplier;
+                                    dayScore += pts;
+                                    dayCatEarned[cat.id] += pts;
+                                    itemCounts[item.id] = (itemCounts[item.id] || 0) + pts;
+                                } else {
+                                    dayScore += itemPts;
+                                    dayCatEarned[cat.id] += itemPts;
+                                    itemCounts[item.id] = (itemCounts[item.id] || 0) + 1;
+                                }
+                            }
+                        }
+                    });
+
+                    if (day <= effectiveDays && dayCatMax[cat.id] > 0) {
+                        const ratio = dayCatEarned[cat.id] / dayCatMax[cat.id];
+                        if (ratio >= 0.8) {
+                            sectionDaysQualified[cat.id]++;
+                        }
+                    }
+                });
+
+                if (hasEntry && dayScore > 0) activeDaysCount++;
+                if (day <= effectiveDays) {
+                    totalEarnedInMonth += dayScore;
+                    sumDayMax += dayMax;
+                }
+                if (dayScore > bestScore) bestScore = dayScore;
+
+                const scorePct = dayMax > 0 ? Math.round((dayScore / dayMax) * 100) : 0;
+                dailyScores.push({ day, score: dayScore, pct: scorePct, isPassed: day <= effectiveDays, hasEntry: hasEntry });
+            }
+
+            const avgDailyScore = sumDayMax > 0 ? Math.round((totalEarnedInMonth / sumDayMax) * 100) : 0;
+            document.getElementById('statActiveDays').innerText = `${toBn(activeDaysCount)} দিন`;
+            document.getElementById('statAvgScore').innerText = `${toBn(avgDailyScore)}%`;
+            document.getElementById('statBestScore').innerText = toBn(bestScore);
+
+            const getBarColor = (pct) => {
+                if (pct < 50) return 'linear-gradient(to top, #c62828, #ef5350)';       
+                if (pct < 60) return 'linear-gradient(to top, #ef5350, #ffab91)';       
+                if (pct < 70) return 'linear-gradient(to top, #fdd835, #fff59d)';       
+                if (pct < 80) return 'linear-gradient(to top, #9ccc65, #dcedc8)';       
+                if (pct < 90) return 'linear-gradient(to top, #2e7d32, #66bb6a)';       
+                return 'linear-gradient(to top, #ff8f00, #ffca28)';                     
+            };
+
+            const chartContainer = document.getElementById('monthlyBarChart');
+            chartContainer.innerHTML = '';
+            dailyScores.forEach(ds => {
+                const col = document.createElement('div');
+                col.className = 'bar-col';
+                const heightPct = Math.min(100, Math.max(ds.score > 0 ? 8 : 2, ds.pct));
+                const barColor = (ds.isPassed && ds.hasEntry) ? getBarColor(ds.pct) : 'var(--border)';
+                const valueLabel = (ds.isPassed && ds.hasEntry) ? `<div class="bar-value">${toBn(ds.score)}</div>` : '';
+
+                col.innerHTML = `
+                    ${valueLabel}
+                    <div class="bar-fill" style="height: ${heightPct}%; background: ${barColor};" title="তারিখ: ${ds.day}, মার্কস: ${ds.score}"></div>
+                    <div class="bar-date">${toBn(ds.day)}</div>
+                `;
+                chartContainer.appendChild(col);
+            });
+
+            const breakdownContainer = document.getElementById('breakdownList');
+            breakdownContainer.innerHTML = '';
+
+            trackerSchema.forEach(cat => {
+                const catGroup = document.createElement('div');
+                catGroup.style.marginBottom = '14px';
+                
+                const groupTitle = document.createElement('div');
+                groupTitle.style.fontSize = '14px';
+                groupTitle.style.fontWeight = 'bold';
+                groupTitle.style.color = 'var(--primary)';
+                groupTitle.style.margin = '10px 0 6px';
+                groupTitle.innerHTML = `${cat.icon} ${cat.title}`;
+                catGroup.appendChild(groupTitle);
+
+                if (cat.type === 'dua_list') {
+                    const doneDays = sectionDaysQualified[cat.id];
+                    const percentage = effectiveDays > 0 ? Math.round((doneDays / effectiveDays) * 100) : 0;
+
+                    let tierClass = 'pct-low';
+                    let barClass = 'progress-low';
+                    if (percentage >= 75) {
+                        tierClass = 'pct-high';
+                        barClass = 'progress-high';
+                    } else if (percentage >= 40) {
+                        tierClass = 'pct-mid';
+                        barClass = 'progress-mid';
+                    }
+
+                    const summaryRow = document.createElement('div');
+                    summaryRow.className = 'pct-item';
+                    const expandId = `expand_${cat.id}`;
+
+                    summaryRow.innerHTML = `
+                        <div class="pct-info">
+                            <span class="pct-title">${cat.title} (৮০%+ আমল সম্পন্ন)</span>
+                            <div>
+                                <span class="pct-count">(${toBn(doneDays)}/${toBn(effectiveDays)} দিন)</span>
+                                <span class="pct-val ${tierClass}">${toBn(percentage)}%</span>
+                            </div>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-bar ${barClass}" style="width: ${percentage}%"></div>
+                        </div>
+                        <span class="expand-toggle-btn" onclick="toggleZikrDetails('${expandId}')">▶ প্রতিটি দোয়ার হিসাব দেখুন</span>
+                    `;
+                    
+                    const hiddenBox = document.createElement('div');
+                    hiddenBox.id = expandId;
+                    hiddenBox.className = 'hidden-details';
+
+                    cat.items.forEach(item => {
+                        const itemDone = itemCounts[item.id] || 0;
+                        const itemPct = effectiveDays > 0 ? Math.round((itemDone / effectiveDays) * 100) : 0;
+                        const itemRow = document.createElement('div');
+                        itemRow.style.margin = "6px 0";
+                        itemRow.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-muted);">
+                                <span>${item.name}</span>
+                                <span><b>${toBn(itemDone)} দিন</b> (${toBn(itemPct)}%)</span>
+                            </div>
+                        `;
+                        hiddenBox.appendChild(itemRow);
+                    });
+
+                    summaryRow.appendChild(hiddenBox);
+                    catGroup.appendChild(summaryRow);
+                } else {
+                    cat.items.forEach(item => {
+                        let percentage = 0;
+                        let displayCount = '';
+                        
+                        const possibleDays = itemPossibleDays[item.id];
+                        if (possibleDays === 0) return; 
+
+                        if (item.type === 'multiplier') {
+                            const totalPossible = possibleDays * (item.maxVal * item.multiplier);
+                            const earnedPts = itemCounts[item.id] || 0;
+                            percentage = totalPossible > 0 ? Math.round((earnedPts / totalPossible) * 100) : 0;
+                            displayCount = `(${toBn(earnedPts)}/${toBn(totalPossible)} পয়েন্ট)`;
+                        } else {
+                            const doneDays = itemCounts[item.id] || 0;
+                            percentage = possibleDays > 0 ? Math.round((doneDays / possibleDays) * 100) : 0;
+                            displayCount = `(${toBn(doneDays)}/${toBn(possibleDays)} দিন)`;
+                        }
+
+                        let tierClass = 'pct-low';
+                        let barClass = 'progress-low';
+                        if (percentage >= 75) {
+                            tierClass = 'pct-high';
+                            barClass = 'progress-high';
+                        } else if (percentage >= 40) {
+                            tierClass = 'pct-mid';
+                            barClass = 'progress-mid';
+                        }
+
+                        const row = document.createElement('div');
+                        row.className = 'pct-item';
+                        row.innerHTML = `
+                            <div class="pct-info">
+                                <span class="pct-title">${item.name}</span>
+                                <div>
+                                    <span class="pct-count">${displayCount}</span>
+                                    <span class="pct-val ${tierClass}">${toBn(percentage)}%</span>
+                                </div>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-bar ${barClass}" style="width: ${percentage}%"></div>
+                            </div>
+                        `;
+                        catGroup.appendChild(row);
+                    });
+                }
+
+                breakdownContainer.appendChild(catGroup);
+            });
+        }
+
+        function toggleZikrDetails(expandId) {
+            const el = document.getElementById(expandId);
+            const btn = el.previousElementSibling;
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+                btn.innerText = '▶ প্রতিটি দোয়ার হিসাব দেখুন';
+            } else {
+                el.style.display = 'block';
+                btn.innerText = '▼ দোয়ার বিস্তারিত লুকান';
+            }
+        }
+
+        /* Backup Systems */
+        function exportDataJSON() {
+            const dataToExport = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('amal_tracker_') || key === 'amal_theme') {
+                    dataToExport[key] = localStorage.getItem(key);
+                }
+            }
+            const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Amal_Tracker_Backup_${getTodayDateStr()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('ব্যাকআপ ডাউনলোড সফল হয়েছে!');
+        }
+
+        function importDataJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    let count = 0;
+                    for (const key in parsed) {
+                        localStorage.setItem(key, parsed[key]);
+                        count++;
+                    }
+                    showToast(`সফলভাবে রিস্টোর হয়েছে!`);
+                    setTimeout(() => location.reload(), 1500);
+                } catch (err) { alert('ভুল ফাইল ফরম্যাট!'); }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (confirm('আপনার সকল ডেটা স্থায়ীভাবে মুছে যাবে! আপনি কি নিশ্চিত?')) {
+                const keys = Object.keys(localStorage).filter(k => k.startsWith('amal_tracker_'));
+                keys.forEach(k => localStorage.removeItem(k));
+                renderDailyTracker();
+                showToast('সকল ডেটা মুছে ফেলা হয়েছে!');
+            }
+        }
+
+        /* Scroll Listener for Floating Pill */
+        window.addEventListener('scroll', () => {
+            const fp = document.getElementById('floatingProgress');
+            if (activeTab === 'daily' && window.scrollY > 180) {
+                fp.classList.add('show');
+            } else {
+                fp.classList.remove('show');
+            }
+        });
+
+        window.onload = () => { renderDailyTracker(); };
+    </script>
+</body>
+</html>
